@@ -15,6 +15,7 @@ option(squid_gps_desktop_enable_tests "Enable tests" ${squid_gps_desktop_is_topl
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/add_asio.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/add_marnav.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/add_json.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/add_spdlog.cmake)
 
 add_subdirectory(src)

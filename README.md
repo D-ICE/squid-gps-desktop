@@ -12,4 +12,7 @@ Supported frames are:
 
 We relied on the [NMEASimulator](https://github.com/panaaj/nmeasimulator) project
 for development. Tests are executed with that tool running as UDP client on port
-78001
+78001.
+
+The squid related tests, also require a local SquidX running with the Squid gps
+connection enabled.
