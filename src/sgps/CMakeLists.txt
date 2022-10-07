@@ -1,6 +1,8 @@
 set(sgps_sources
   model.h
   model.cpp
+  controller.h
+  controller.cpp
 
   nmea_listener.h
   nmea_listener.cpp

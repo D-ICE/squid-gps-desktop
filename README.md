@@ -6,7 +6,16 @@ A simple application to connect NMEA-0183 complient sensors to [Squid X](https:/
 
 The application listens for NMEA frames on UDP and sends it to Squid X.  
 Supported frames are:
-*
+* GGA: latitude, longitude
+* GNS: latitude, longitude
+* GLL: latitude, longitude
+* RMA: latitude, longitude
+* RMB: latitude, longitude, heading
+* RMC: latitude, longitude, heading, speed
+* VTG: heading, speed
+* VHW: heading, speed
+* HDT: heading
+* HDG: heading
 
 ## Tests
 
