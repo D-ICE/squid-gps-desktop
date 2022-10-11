@@ -1,0 +1,27 @@
+diff --git a/src/marnav/nmea/angle.cpp b/src/marnav/nmea/angle.cpp
+index feae413..dc76d28 100644
+--- a/src/marnav/nmea/angle.cpp
++++ b/src/marnav/nmea/angle.cpp
+@@ -1,6 +1,7 @@
+ #include <marnav/nmea/angle.hpp>
+ #include <stdexcept>
+ #include <cmath>
++#include <sstream>
+ 
+ namespace marnav
+ {
+@@ -13,10 +14,10 @@ static geo::angle parse_angle(const std::string & s)
+ {
+ 	if (s.empty())
+ 		return geo::angle{0.0};
+-	std::size_t pos = 0;
+-	auto tmp = std::stod(s, &pos);
+-	if (pos != s.size())
+-		throw std::invalid_argument{"invalid string for conversion to geo::angle for NMEA"};
++  std::stringstream ss;
++  ss << s;
++  double tmp = 0.0;
++  ss >> tmp;
+ 
+ 	// adoption of NMEA angle DDDMM.SSS to the one that is used here
+ 	const double deg = (tmp - fmod(tmp, 100.0)) / 100.0;
