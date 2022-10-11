@@ -8,9 +8,9 @@ class Connection : public std::enable_shared_from_this<Connection> {
   Connection(asio::io_context& context, const Model& model) :
     m_socket(context),
     m_model(model) {}
-  
+
   asio::ip::tcp::socket& socket() { return m_socket; }
-  
+
   void AsyncListen() {
     auto shared_this = shared_from_this();  // keep the object alive
     m_socket.async_read_some(asio::buffer(m_datagram), [shared_this](const asio::error_code& ec, std::size_t size){
@@ -18,18 +18,18 @@ class Connection : public std::enable_shared_from_this<Connection> {
         spdlog::info("[sgps] Reading from tcp socket failed: {}. Closing the connection", ec.message());
         return;  // shared_this will be de-referenced leading to the connection getting closed
       }
-      
+
       std::string datagram(shared_this->m_datagram.data(), size);
       spdlog::trace("[sgps] Received data: {}", datagram);
       if (datagram.rfind("AUTHORIZE", 0) == 0) {  // if starts with AUTHORIZE
-        spdlog::trace("[sgps] Allowing connection");
+        spdlog::info("[sgps] Allowing connection");
         shared_this->m_socket.send(asio::buffer("ALLOW"));
-      } else if (datagram.rfind("DATA", 0) == 0) {
+      } /*else if (datagram.rfind("DATA", 0) == 0) {
         // send representation of model
-        auto model = shared_this->m_model.SquidXFormatted();
-        spdlog::trace("[sgps] Sending {}", model);
-        shared_this->m_socket.send(asio::buffer(model));
-      }
+      }*/
+      auto model = shared_this->m_model.SquidXFormatted();
+      spdlog::info("[sgps] Sending {}", model);
+      shared_this->m_socket.send(asio::buffer(model));
       shared_this->AsyncListen();  // keep the connection open because the shared_this will be recreated
     });
   }
@@ -37,7 +37,7 @@ class Connection : public std::enable_shared_from_this<Connection> {
  private:
   asio::ip::tcp::socket m_socket;
   const Model& m_model;
-  
+
   std::array<char, 4096> m_datagram;
 };
 
@@ -74,16 +74,24 @@ void SquidGPSServer::Listen() {
       return;
     }
     spdlog::debug("[sgps] New connection setup");
+    m_on_connected();
     connection->AsyncListen();
     Listen();
   });
 }
 
-void SquidGPSServer::Connect(std::error_code& err) {
-  Connect(asio::ip::address::from_string("127.0.0.1"), err);
+void SquidGPSServer::Connect(std::function<void()> on_connected,
+                             std::error_code& err) {
+  Connect(std::move(on_connected),
+          asio::ip::address::from_string("192.168.1.11"),
+          err);
 }
 
-void SquidGPSServer::Connect(const asio::ip::address& squidx_addr, std::error_code &err) {
+void SquidGPSServer::Connect(std::function<void()> on_connected,
+                             const asio::ip::address& squidx_addr,
+                             std::error_code &err) {
+  m_on_connected = std::move(on_connected);
+
   asio::ip::udp::socket socket(m_context);
   socket.open(asio::ip::udp::v4(), err);
   if (err) {

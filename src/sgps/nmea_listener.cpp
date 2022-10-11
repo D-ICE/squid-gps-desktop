@@ -31,17 +31,17 @@ namespace sgps {
         return;
       }
       m_buffer += std::string(m_datagram.data(), size);
-      
+
       std::size_t pos = 0;
       while ((pos = m_buffer.find(kSentenceDelimiter)) != std::string::npos) {
         auto sentence_str = m_buffer.substr(0, pos);
         m_buffer.erase(0, pos + kSentenceDelimiter.length());
-        
+
         try {
           auto sentence = marnav::nmea::make_sentence(sentence_str);
           on_sentence(std::move(sentence));
-        } catch (std::exception) {
-          spdlog::debug("[sgps] Could not decode sentence {}", sentence_str);
+        } catch (std::invalid_argument e) {
+          spdlog::debug("[sgps] Could not decode sentence {} - {}", sentence_str, e.what());
           continue;
         }
       }
