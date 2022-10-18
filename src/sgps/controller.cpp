@@ -69,7 +69,6 @@ namespace sgps {
     void OnSentence(const marnav::nmea::hdg& s, Model& model) {
       if (s.get_heading()) { model.set_heading(s.get_heading().value()); }
     }
-  
 
     template <typename Sentence>
     void OnSentence(const marnav::nmea::sentence& s, Model& model) {
@@ -92,6 +91,7 @@ namespace sgps {
     REGISTER(RMA, rma),
     REGISTER(RMB, rmb),
     REGISTER(RMC, rmc),
+    REGISTER(VTG, vtg),
     REGISTER(VHW, vhw),
     REGISTER(HDT, hdt),
     REGISTER(HDG, hdg)
@@ -101,7 +101,7 @@ namespace sgps {
   
   void Controller::OnSentence(const marnav::nmea::sentence &sentence) {
     if (kRegistry.find(sentence.id()) == std::end(kRegistry)) {
-      spdlog::debug("[sgps] Unhandled sentence received: {}", marnav::nmea::to_string(sentence));
+      spdlog::trace("[sgps] Unhandled sentence received: {}", marnav::nmea::to_string(sentence));
       return;
     }
     kRegistry[sentence.id()](sentence, m_model);

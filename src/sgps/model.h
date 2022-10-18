@@ -13,6 +13,7 @@ namespace sgps {
     void set_speed(double value) { m_speed = value; }
     
     std::string SquidXFormatted() const;
+    std::string TextFormatted() const;
     
    private:
     std::optional<double> m_latitude;

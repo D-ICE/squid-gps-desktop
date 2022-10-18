@@ -8,6 +8,7 @@ FetchContent_Declare(spdlog
 FetchContent_GetProperties(spdlog)
 if(NOT spdlog_POPULATED)
   FetchContent_Populate(spdlog)
+  set(SPDLOG_FMT_EXTERNAL ON CACHE BOOL "" FORCE)
   add_subdirectory(${spdlog_SOURCE_DIR} ${spdlog_BINARY_DIR})
 endif()
 

@@ -1,14 +1,18 @@
 #include "backend.h"
 #include <spdlog/spdlog.h>
 
-BackEnd::BackEnd(QObject *parent) :
-  QObject(parent),
-  m_state(DISCONNECTED),
-  m_nmea_port(6001),
-  m_controller(m_model) {}
+const uint16_t BackEnd::kDefaultNMEAPort = 6000;
 
-QString BackEnd::status() const {
-  switch (m_state) {
+BackEnd::BackEnd(QObject *parent) :
+    QObject(parent),
+    m_squid_connection_state(DISCONNECTED),
+    m_settings("Squid", "SquidGPSDesktop"),
+    m_controller(m_model) {
+  ConnectNMEA(m_listener_err);
+}
+
+QString BackEnd::squid_connection_status() const {
+  switch (m_squid_connection_state) {
     case DISCONNECTED:
       return "Disconnected";
     case CONNECTING:
@@ -18,68 +22,161 @@ QString BackEnd::status() const {
   }
   return "INVALID";
 }
+QString BackEnd::nmea_displayed_frames() const {
+  return {m_displayed_nmea_frames.c_str()};
+}
 
-void BackEnd::UpdateState(bool checked) {
+uint16_t BackEnd::nmea_udp_port() const {
+  return nmea_udp_port_setting();
+}
+
+void BackEnd::set_nmea_udp_port(uint16_t value) {
+  if (value == nmea_udp_port()) {
+    return;
+  }
+  set_nmea_udp_port_setting(value);
+  DisconnectNMEA(m_listener_err);
+  if (m_listener_err) {
+    spdlog::warn("Disconnect error: {}", m_listener_err.message());
+  }
+  m_listener_err.clear();
+  ConnectNMEA(m_listener_err);
+}
+
+uint16_t BackEnd::nmea_udp_port_setting() const {
+  return m_settings.value("nmea_udp_port", kDefaultNMEAPort).toUInt();
+}
+
+void BackEnd::set_nmea_udp_port_setting(uint16_t value) {
+  m_settings.setValue("nmea_udp_port", value);
+}
+
+void BackEnd::ConnectNMEA(std::error_code& err) {
+  spdlog::trace("Connecting to NMEA publisher on port {}", nmea_udp_port());
+  m_listener_context = std::make_shared<asio::io_context>();
+  spdlog::trace("Building nmea listener");
+  m_listener = std::make_shared<sgps::NMEAListener>(*m_listener_context);
+  m_listener->Initialize(nmea_udp_port(), err);
+  if (err) {
+    return;
+  }
+  spdlog::trace("Listening on port {}", nmea_udp_port());
+  m_listener->AsyncListen([this](std::unique_ptr<marnav::nmea::sentence> sentence){
+    spdlog::trace("New sentence {}", marnav::nmea::to_string(*sentence));
+    m_controller.OnSentence(*sentence);
+
+    // Update the visualized frames
+    PushNMEAFrame(marnav::nmea::to_string(*sentence));
+  });
+
+  m_listener_context_thread = std::make_shared<std::thread>([this](){
+    m_listener_context->run();
+    spdlog::debug("Closing listener context.");
+  });
+}
+
+void BackEnd::PushNMEAFrame(std::string&& value) {
+  m_received_nmea_frames.emplace_front(value);
+  while (m_received_nmea_frames.size() > 10) {
+    m_received_nmea_frames.pop_back();
+  }
+  m_displayed_nmea_frames.clear();
+  for (const auto& v : m_received_nmea_frames) {
+    m_displayed_nmea_frames += v;
+    m_displayed_nmea_frames += "\r\n";
+  }
+  emit nmea_displayed_frames_changed();
+  emit current_state_changed();
+}
+
+void BackEnd::DisconnectNMEA(std::error_code& err) {
+  spdlog::trace("Disconnecting NMEA Listener");
+  if (!m_listener_context) {
+    return;
+  }
+  m_listener_context->stop();
+  if (m_listener_context_thread) {
+    m_listener_context_thread->join();
+    m_listener_context_thread.reset();
+  }
+  m_listener_context.reset();
+  m_listener.reset();
+}
+
+
+void BackEnd::UpdateSquidState(bool checked) {
   std::error_code err;
   if (checked) {
-    m_state = CONNECTING;
-    Connect(err);
-    // TODO: display error if any
+    m_squid_connection_state = CONNECTING;
+    Connect(err);  // TODO handle err
   } else {
-    m_state = DISCONNECTED;
+    m_squid_connection_state = DISCONNECTED;
     Disconnect(err);
-    // TODO: display error if any
   }
-  emit status_changed();
+  emit squid_connection_status_changed();
 }
 
 void BackEnd::Connect(std::error_code& err) {
   spdlog::trace("Building context");
-  m_context = std::make_shared<asio::io_context>();
-
-  spdlog::trace("Building nmea listener");
-  m_listener = std::make_shared<sgps::NMEAListener>(*m_context);
-  m_listener->Initialize(m_nmea_port, err);
-  if (err) {
-    return;
-  }
+  m_squid_context = std::make_shared<asio::io_context>();
 
   spdlog::trace("Building squid server");
-  m_squid_server = std::make_shared<sgps::SquidGPSServer>(*m_context, m_model);
+  m_squid_server = std::make_shared<sgps::SquidGPSServer>(*m_squid_context, m_model);
   m_squid_server->Initialize(err);
   if (err) {
     return;
   }
 
-  spdlog::trace("Listening on port {}", m_nmea_port);
-  m_listener->AsyncListen([this](std::unique_ptr<marnav::nmea::sentence> sentence){
-    spdlog::trace("New sentence {}", marnav::nmea::to_string(*sentence));
-    m_controller.OnSentence(*sentence);
-  });
-
-  m_context_thread = std::make_shared<std::thread>([this](){
-    m_context->run();
+  m_squid_context_thread = std::make_shared<std::thread>([this](){
+    m_squid_context->run();
     spdlog::debug("Closing context.");
   });
 
-  spdlog::trace("Sending connection request.");
-  m_squid_server->Connect([this](){
-    m_state = CONNECTED;
-    emit status_changed();
-  }, err);
+  m_squid_connection_thread = std::make_shared<std::thread>([this](){
+    while (m_squid_connection_state == CONNECTING) {
+      spdlog::info("Sending connection request.");
+      std::error_code err;
+      m_squid_server->Connect([this](){
+        m_squid_connection_state = CONNECTED;
+        m_squid_connection_condition_variable.notify_all();  // stop waiting for the connection
+        emit squid_connection_status_changed();
+      }, [this](){
+        m_squid_connection_state = DISCONNECTED;
+        m_squid_connection_condition_variable.notify_all();  // stop waiting for the connection
+        emit squid_connection_status_changed();
+      }, err);
+      if (err) {
+        spdlog::warn("Failed to send connection request: {}", err.message());
+      }
+
+      // wait for 2 seconds before calling the connection again
+      std::unique_lock lk(m_squid_connection_mutex);
+      m_squid_connection_condition_variable.wait_for(lk, std::chrono::seconds(2));
+      spdlog::debug("Waking up from connection request loop");
+    }
+  });
+
 }
 
 void BackEnd::Disconnect(std::error_code& err) {
   spdlog::trace("Disconnecting");
-  if (!m_context) {
+  if (!m_squid_context) {
     return;
   }
-  m_context->stop();
-  if (m_context_thread) {
-    m_context_thread->join();
-    m_context_thread.reset();
+  m_squid_context->stop();
+  if (m_squid_context_thread) {
+    m_squid_context_thread->join();
+    m_squid_context_thread.reset();
   }
-  m_context.reset();
-  m_listener.reset();
+  if (m_squid_connection_thread) {
+    m_squid_connection_condition_variable.notify_all();
+    m_squid_connection_thread->join();
+    m_squid_context_thread.reset();
+  }
   m_squid_server.reset();
+  m_squid_context.reset();
+}
+
+QString BackEnd::current_state() const {
+  return {m_model.TextFormatted().c_str()};
 }

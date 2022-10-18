@@ -16,6 +16,7 @@ option(squid_gps_enable_gui "Enable tests" ON)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/add_asio.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/add_marnav.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/add_json.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/add_fmt.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/add_spdlog.cmake)
 
 add_subdirectory(src)

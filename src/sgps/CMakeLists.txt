@@ -11,7 +11,7 @@ set(sgps_sources
 )
 
 add_library(sgps ${sgps_sources})
-target_link_libraries(sgps asio marnav nlohmann_json spdlog)
+target_link_libraries(sgps asio marnav nlohmann_json fmt spdlog)
 
 target_include_directories(sgps PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>

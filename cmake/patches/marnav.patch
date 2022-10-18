@@ -1,5 +1,5 @@
 diff --git a/src/marnav/nmea/angle.cpp b/src/marnav/nmea/angle.cpp
-index feae413..dc76d28 100644
+index feae413..dbc546f 100644
 --- a/src/marnav/nmea/angle.cpp
 +++ b/src/marnav/nmea/angle.cpp
 @@ -1,6 +1,7 @@
@@ -10,18 +10,52 @@ index feae413..dc76d28 100644
  
  namespace marnav
  {
-@@ -13,10 +14,10 @@ static geo::angle parse_angle(const std::string & s)
+@@ -13,10 +14,16 @@ static geo::angle parse_angle(const std::string & s)
  {
  	if (s.empty())
  		return geo::angle{0.0};
 -	std::size_t pos = 0;
 -	auto tmp = std::stod(s, &pos);
 -	if (pos != s.size())
--		throw std::invalid_argument{"invalid string for conversion to geo::angle for NMEA"};
-+  std::stringstream ss;
-+  ss << s;
-+  double tmp = 0.0;
-+  ss >> tmp;
++	// std::size_t pos = 0;
++	// auto tmp = std::stod(s, &pos);
++	// if (pos != s.size())
++	std::stringstream ss;
++	ss << s;
++	double tmp = 0.0;
++	ss >> tmp;
++	if (ss.fail()) {
+ 		throw std::invalid_argument{"invalid string for conversion to geo::angle for NMEA"};
++	}
  
  	// adoption of NMEA angle DDDMM.SSS to the one that is used here
  	const double deg = (tmp - fmod(tmp, 100.0)) / 100.0;
+diff --git a/src/marnav/nmea/time.cpp b/src/marnav/nmea/time.cpp
+index 24666d2..b322d87 100644
+--- a/src/marnav/nmea/time.cpp
++++ b/src/marnav/nmea/time.cpp
+@@ -1,5 +1,6 @@
+ #include <marnav/nmea/time.hpp>
+ #include <stdexcept>
++#include <sstream>
+ 
+ namespace marnav
+ {
+@@ -13,9 +14,14 @@ template <class T>
+ static T parse_time(const std::string & str)
+ {
+ 	try {
+-		std::size_t pos = 0;
+-		double t = std::stod(str, &pos);
+-		if (pos != str.size())
++		// std::size_t pos = 0;
++		// double t = std::stod(str, &pos);
++		// if (pos != str.size())
++		std::stringstream ss;
++		ss << str;
++		double t = 0.0;
++		ss >> t;
++		if (ss.fail())
+ 			throw std::invalid_argument{"invalid format for 'double'"};
+ 
+ 		const uint32_t h = static_cast<uint32_t>(t / 10000) % 100;
