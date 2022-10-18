@@ -29,6 +29,17 @@ target_link_libraries(squid-gps-desktop
     sgps
 )
 
+set(squid-gps-desktop_libraries
+  Qt6::Qml
+  Qt6::Quick
+  Qt6::Widgets
+  sgps
+)
+if(WIN32)
+  set(squid-gps-desktop_libraries ${squid-gps-desktop_libraries} wsock32 ws2_32)
+endif()
+target_link_libraries(squid-gps-desktop PRIVATE ${squid-gps-desktop_libraries})
+
 set_target_properties(squid-gps-desktop PROPERTIES
     WIN32_EXECUTABLE ON
     MACOSX_BUNDLE ON
