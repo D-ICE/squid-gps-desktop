@@ -1,5 +1,22 @@
+diff --git a/include/marnav/nmea/constants.hpp b/include/marnav/nmea/constants.hpp
+index 23da994..cd1725d 100644
+--- a/include/marnav/nmea/constants.hpp
++++ b/include/marnav/nmea/constants.hpp
+@@ -83,9 +83,9 @@ enum class pressure : char {
+ 
+ /// Enumeration of all possible references of data.
+ enum class reference : char {
+-	TRUE, ///< NMEA representation: 'T'
+-	MAGNETIC, ///< NMEA representation: 'M'
+-	RELATIVE ///< NMEA representation: 'R'
++	TRUE_REF, ///< NMEA representation: 'T'
++	MAGNETIC_REF, ///< NMEA representation: 'M'
++	RELATIVE_REF ///< NMEA representation: 'R'
+ };
+ 
+ /// Side of the vessel.
 diff --git a/src/marnav/nmea/angle.cpp b/src/marnav/nmea/angle.cpp
-index feae413..dbc546f 100644
+index feae413..a1550c7 100644
 --- a/src/marnav/nmea/angle.cpp
 +++ b/src/marnav/nmea/angle.cpp
 @@ -1,6 +1,7 @@
@@ -10,7 +27,7 @@ index feae413..dbc546f 100644
  
  namespace marnav
  {
-@@ -13,10 +14,16 @@ static geo::angle parse_angle(const std::string & s)
+@@ -13,9 +14,14 @@ static geo::angle parse_angle(const std::string & s)
  {
  	if (s.empty())
  		return geo::angle{0.0};
@@ -20,18 +37,409 @@ index feae413..dbc546f 100644
 +	// std::size_t pos = 0;
 +	// auto tmp = std::stod(s, &pos);
 +	// if (pos != s.size())
++	double tmp;
 +	std::stringstream ss;
 +	ss << s;
-+	double tmp = 0.0;
 +	ss >> tmp;
-+	if (ss.fail()) {
++	if (ss.fail())
  		throw std::invalid_argument{"invalid string for conversion to geo::angle for NMEA"};
-+	}
  
  	// adoption of NMEA angle DDDMM.SSS to the one that is used here
- 	const double deg = (tmp - fmod(tmp, 100.0)) / 100.0;
+diff --git a/src/marnav/nmea/apa.cpp b/src/marnav/nmea/apa.cpp
+index e11f1fe..ed319b1 100644
+--- a/src/marnav/nmea/apa.cpp
++++ b/src/marnav/nmea/apa.cpp
+@@ -36,7 +36,7 @@ apa::apa(talker talk, fields::const_iterator first, fields::const_iterator last)
+ 
+ void apa::set_bearing_origin_to_destination(double t, reference ref)
+ {
+-	check_value(bearing_origin_to_destination_ref_, {reference::TRUE, reference::MAGNETIC},
++	check_value(bearing_origin_to_destination_ref_, {reference::TRUE_REF, reference::MAGNETIC_REF},
+ 		"bearing_origin_to_destination_ref");
+ 	bearing_origin_to_destination_ = t;
+ 	bearing_origin_to_destination_ref_ = ref;
+@@ -54,7 +54,7 @@ void apa::check() const
+ 
+ 	if (bearing_origin_to_destination_ && !bearing_origin_to_destination_ref_)
+ 		throw std::invalid_argument{"missing bearing_origin_to_destination_ref"};
+-	check_value(bearing_origin_to_destination_ref_, {reference::TRUE, reference::MAGNETIC},
++	check_value(bearing_origin_to_destination_ref_, {reference::TRUE_REF, reference::MAGNETIC_REF},
+ 		"bearing_origin_to_destination_ref");
+ }
+ 
+diff --git a/src/marnav/nmea/apb.cpp b/src/marnav/nmea/apb.cpp
+index 8190050..d4c6e1e 100644
+--- a/src/marnav/nmea/apb.cpp
++++ b/src/marnav/nmea/apb.cpp
+@@ -45,7 +45,7 @@ apb::apb(talker talk, fields::const_iterator first, fields::const_iterator last)
+ 
+ void apb::set_bearing_origin_to_destination(double t, reference ref)
+ {
+-	check_value(bearing_origin_to_destination_ref_, {reference::TRUE, reference::MAGNETIC},
++	check_value(bearing_origin_to_destination_ref_, {reference::TRUE_REF, reference::MAGNETIC_REF},
+ 		"bearing_origin_to_destination_ref");
+ 	bearing_origin_to_destination_ = t;
+ 	bearing_origin_to_destination_ref_ = ref;
+@@ -53,7 +53,7 @@ void apb::set_bearing_origin_to_destination(double t, reference ref)
+ 
+ void apb::set_bearing_pos_to_destination(double t, reference ref)
+ {
+-	check_value(bearing_pos_to_destination_ref_, {reference::TRUE, reference::MAGNETIC},
++	check_value(bearing_pos_to_destination_ref_, {reference::TRUE_REF, reference::MAGNETIC_REF},
+ 		"bearing_pos_to_destination_ref");
+ 	bearing_pos_to_destination_ = t;
+ 	bearing_pos_to_destination_ref_ = ref;
+@@ -61,7 +61,7 @@ void apb::set_bearing_pos_to_destination(double t, reference ref)
+ 
+ void apb::set_heading_to_steer_to_destination(double t, reference ref)
+ {
+-	check_value(heading_to_steer_to_destination_ref_, {reference::TRUE, reference::MAGNETIC},
++	check_value(heading_to_steer_to_destination_ref_, {reference::TRUE_REF, reference::MAGNETIC_REF},
+ 		"heading_to_steer_to_destination_ref");
+ 	heading_to_steer_to_destination_ = t;
+ 	heading_to_steer_to_destination_ref_ = ref;
+@@ -87,17 +87,17 @@ void apb::check() const
+ 
+ 	if (bearing_origin_to_destination_ && !bearing_origin_to_destination_ref_)
+ 		throw std::invalid_argument{"missing bearing_origin_to_destination_ref"};
+-	check_value(bearing_origin_to_destination_ref_, {reference::TRUE, reference::MAGNETIC},
++	check_value(bearing_origin_to_destination_ref_, {reference::TRUE_REF, reference::MAGNETIC_REF},
+ 		"bearing_origin_to_destination_ref");
+ 
+ 	if (bearing_pos_to_destination_ && !bearing_pos_to_destination_ref_)
+ 		throw std::invalid_argument{"missing bearing_pos_to_destination_ref"};
+-	check_value(bearing_pos_to_destination_ref_, {reference::TRUE, reference::MAGNETIC},
++	check_value(bearing_pos_to_destination_ref_, {reference::TRUE_REF, reference::MAGNETIC_REF},
+ 		"bearing_pos_to_destination_ref");
+ 
+ 	if (heading_to_steer_to_destination_ && !heading_to_steer_to_destination_ref_)
+ 		throw std::invalid_argument{"missing heading_to_steer_to_destination_ref"};
+-	check_value(heading_to_steer_to_destination_ref_, {reference::TRUE, reference::MAGNETIC},
++	check_value(heading_to_steer_to_destination_ref_, {reference::TRUE_REF, reference::MAGNETIC_REF},
+ 		"heading_to_steer_to_destination_ref");
+ 
+ 	check_value(mode_ind_,
+diff --git a/src/marnav/nmea/bec.cpp b/src/marnav/nmea/bec.cpp
+index dc070b7..a1f08b3 100644
+--- a/src/marnav/nmea/bec.cpp
++++ b/src/marnav/nmea/bec.cpp
+@@ -42,8 +42,8 @@ bec::bec(talker talk, fields::const_iterator first, fields::const_iterator last)
+ 	lat_ = correct_hemisphere(lat_, lat_hem_);
+ 	lon_ = correct_hemisphere(lon_, lon_hem_);
+ 
+-	check_value(bearing_true_ref, {reference::TRUE}, "bearing_true_ref");
+-	check_value(bearing_magn_ref, {reference::MAGNETIC}, "bearing_magn_ref");
++	check_value(bearing_true_ref, {reference::TRUE_REF}, "bearing_true_ref");
++	check_value(bearing_magn_ref, {reference::MAGNETIC_REF}, "bearing_magn_ref");
+ 	check_value(distance_unit, {unit::distance::nm}, "distance_unit");
+ }
+ 
+@@ -99,9 +99,9 @@ void bec::append_data_to(std::string & s) const
+ 	append(s, to_string(lon_));
+ 	append(s, to_string(lon_hem_));
+ 	append(s, to_string(bearing_true_));
+-	append(s, to_string(reference::TRUE));
++	append(s, to_string(reference::TRUE_REF));
+ 	append(s, to_string(bearing_magn_));
+-	append(s, to_string(reference::MAGNETIC));
++	append(s, to_string(reference::MAGNETIC_REF));
+ 	append(s, to_string(distance_));
+ 	append(s, to_string(unit::distance::nm));
+ 	append(s, to_string(waypoint_id_));
+diff --git a/src/marnav/nmea/bod.cpp b/src/marnav/nmea/bod.cpp
+index 606665e..aa1f769 100644
+--- a/src/marnav/nmea/bod.cpp
++++ b/src/marnav/nmea/bod.cpp
+@@ -30,8 +30,8 @@ bod::bod(talker talk, fields::const_iterator first, fields::const_iterator last)
+ 	read(*(first + 4), waypoint_to_);
+ 	read(*(first + 5), waypoint_from_);
+ 
+-	check_value(type_true, {reference::TRUE}, "bearing true type");
+-	check_value(type_magn, {reference::MAGNETIC}, "bearing magnetic type");
++	check_value(type_true, {reference::TRUE_REF}, "bearing true type");
++	check_value(type_magn, {reference::MAGNETIC_REF}, "bearing magnetic type");
+ }
+ 
+ void bod::set_bearing_true(double t) noexcept
+@@ -47,9 +47,9 @@ void bod::set_bearing_magn(double t) noexcept
+ void bod::append_data_to(std::string & s) const
+ {
+ 	append(s, to_string(bearing_true_));
+-	append(s, to_string_if(reference::TRUE, bearing_true_));
++	append(s, to_string_if(reference::TRUE_REF, bearing_true_));
+ 	append(s, to_string(bearing_magn_));
+-	append(s, to_string_if(reference::MAGNETIC, bearing_magn_));
++	append(s, to_string_if(reference::MAGNETIC_REF, bearing_magn_));
+ 	append(s, to_string(waypoint_to_));
+ 	append(s, to_string(waypoint_from_));
+ }
+diff --git a/src/marnav/nmea/bwc.cpp b/src/marnav/nmea/bwc.cpp
+index dfc0ccd..dbca9b7 100644
+--- a/src/marnav/nmea/bwc.cpp
++++ b/src/marnav/nmea/bwc.cpp
+@@ -72,13 +72,13 @@ void bwc::set_lon(const geo::longitude & t)
+ void bwc::set_bearing_true(double t) noexcept
+ {
+ 	bearing_true_ = t;
+-	bearing_true_ref_ = reference::TRUE;
++	bearing_true_ref_ = reference::TRUE_REF;
+ }
+ 
+ void bwc::set_bearing_mag(double t) noexcept
+ {
+ 	bearing_mag_ = t;
+-	bearing_mag_ref_ = reference::MAGNETIC;
++	bearing_mag_ref_ = reference::MAGNETIC_REF;
+ }
+ 
+ utils::optional<units::length> bwc::get_distance() const
+diff --git a/src/marnav/nmea/bwr.cpp b/src/marnav/nmea/bwr.cpp
+index 4b90bc7..443b45b 100644
+--- a/src/marnav/nmea/bwr.cpp
++++ b/src/marnav/nmea/bwr.cpp
+@@ -46,8 +46,8 @@ bwr::bwr(talker talk, fields::const_iterator first, fields::const_iterator last)
+ 	lat_ = correct_hemisphere(lat_, lat_hem_);
+ 	lon_ = correct_hemisphere(lon_, lon_hem_);
+ 
+-	check_value(bearing_true_ref, {reference::TRUE}, "bearing true ref");
+-	check_value(bearing_magn_ref, {reference::MAGNETIC}, "bearing magnetic ref");
++	check_value(bearing_true_ref, {reference::TRUE_REF}, "bearing true ref");
++	check_value(bearing_magn_ref, {reference::MAGNETIC_REF}, "bearing magnetic ref");
+ 	check_value(distance_unit, {unit::distance::nm}, "distance unit");
+ }
+ 
+@@ -105,9 +105,9 @@ void bwr::append_data_to(std::string & s) const
+ 	append(s, to_string(lon_));
+ 	append(s, to_string(lon_hem_));
+ 	append(s, to_string(bearing_true_));
+-	append(s, to_string_if(reference::TRUE, bearing_true_));
++	append(s, to_string_if(reference::TRUE_REF, bearing_true_));
+ 	append(s, to_string(bearing_mag_));
+-	append(s, to_string_if(reference::MAGNETIC, bearing_mag_));
++	append(s, to_string_if(reference::MAGNETIC_REF, bearing_mag_));
+ 	append(s, to_string(distance_));
+ 	append(s, to_string_if(unit::distance::nm, distance_));
+ 	append(s, to_string(waypoint_id_));
+diff --git a/src/marnav/nmea/bww.cpp b/src/marnav/nmea/bww.cpp
+index c1c8200..e35a2a6 100644
+--- a/src/marnav/nmea/bww.cpp
++++ b/src/marnav/nmea/bww.cpp
+@@ -30,8 +30,8 @@ bww::bww(talker talk, fields::const_iterator first, fields::const_iterator last)
+ 	read(*(first + 4), waypoint_to_);
+ 	read(*(first + 5), waypoint_from_);
+ 
+-	check_value(bearing_true_ref, {reference::TRUE}, "");
+-	check_value(bearing_mag_ref, {reference::MAGNETIC}, "");
++	check_value(bearing_true_ref, {reference::TRUE_REF}, "");
++	check_value(bearing_mag_ref, {reference::MAGNETIC_REF}, "");
+ }
+ 
+ void bww::set_bearing_true(double t) noexcept
+@@ -47,9 +47,9 @@ void bww::set_bearing_mag(double t) noexcept
+ void bww::append_data_to(std::string & s) const
+ {
+ 	append(s, to_string(bearing_true_));
+-	append(s, to_string_if(reference::TRUE, bearing_true_));
++	append(s, to_string_if(reference::TRUE_REF, bearing_true_));
+ 	append(s, to_string(bearing_magn_));
+-	append(s, to_string_if(reference::MAGNETIC, bearing_magn_));
++	append(s, to_string_if(reference::MAGNETIC_REF, bearing_magn_));
+ 	append(s, to_string(waypoint_to_));
+ 	append(s, to_string(waypoint_from_));
+ }
+diff --git a/src/marnav/nmea/hdm.cpp b/src/marnav/nmea/hdm.cpp
+index af7130e..160f37f 100644
+--- a/src/marnav/nmea/hdm.cpp
++++ b/src/marnav/nmea/hdm.cpp
+@@ -27,7 +27,7 @@ hdm::hdm(talker talk, fields::const_iterator first, fields::const_iterator last)
+ void hdm::set_heading(double t) noexcept
+ {
+ 	heading_ = t;
+-	heading_mag_ = reference::MAGNETIC;
++	heading_mag_ = reference::MAGNETIC_REF;
+ }
+ 
+ void hdm::append_data_to(std::string & s) const
+diff --git a/src/marnav/nmea/hdt.cpp b/src/marnav/nmea/hdt.cpp
+index f71182e..68ebb69 100644
+--- a/src/marnav/nmea/hdt.cpp
++++ b/src/marnav/nmea/hdt.cpp
+@@ -27,7 +27,7 @@ hdt::hdt(talker talk, fields::const_iterator first, fields::const_iterator last)
+ void hdt::set_heading(double t) noexcept
+ {
+ 	heading_ = t;
+-	heading_true_ = reference::TRUE;
++	heading_true_ = reference::TRUE_REF;
+ }
+ 
+ void hdt::append_data_to(std::string & s) const
+diff --git a/src/marnav/nmea/hsc.cpp b/src/marnav/nmea/hsc.cpp
+index 1e18257..5cd63d7 100644
+--- a/src/marnav/nmea/hsc.cpp
++++ b/src/marnav/nmea/hsc.cpp
+@@ -29,13 +29,13 @@ hsc::hsc(talker talk, fields::const_iterator first, fields::const_iterator last)
+ void hsc::set_heading_true(double t) noexcept
+ {
+ 	heading_true_ = t;
+-	heading_true_ref_ = reference::TRUE;
++	heading_true_ref_ = reference::TRUE_REF;
+ }
+ 
+ void hsc::set_heading_mag(double t) noexcept
+ {
+ 	heading_mag_ = t;
+-	heading_mag_ref_ = reference::MAGNETIC;
++	heading_mag_ref_ = reference::MAGNETIC_REF;
+ }
+ 
+ void hsc::append_data_to(std::string & s) const
+diff --git a/src/marnav/nmea/io.cpp b/src/marnav/nmea/io.cpp
+index 3f1450e..3d2ac5d 100644
+--- a/src/marnav/nmea/io.cpp
++++ b/src/marnav/nmea/io.cpp
+@@ -326,13 +326,13 @@ void read(const std::string & s, reference & value, data_format fmt)
+ 	read(s, t, fmt);
+ 	switch (t) {
+ 		case 'T':
+-			value = reference::TRUE;
++			value = reference::TRUE_REF;
+ 			break;
+ 		case 'M':
+-			value = reference::MAGNETIC;
++			value = reference::MAGNETIC_REF;
+ 			break;
+ 		case 'R':
+-			value = reference::RELATIVE;
++			value = reference::RELATIVE_REF;
+ 			break;
+ 		default:
+ 			throw std::runtime_error{"invalid data for nmea/reference"};
+diff --git a/src/marnav/nmea/io_double_strtodl.cpp b/src/marnav/nmea/io_double_strtodl.cpp
+index 553d643..ab256b1 100644
+--- a/src/marnav/nmea/io_double_strtodl.cpp
++++ b/src/marnav/nmea/io_double_strtodl.cpp
+@@ -2,6 +2,7 @@
+ #include <marnav/utils/unused.hpp>
+ #include <clocale>
+ #include <stdexcept>
++#include <sstream>
+ 
+ #if defined(__APPLE__)
+ #include <xlocale.h>
+@@ -19,11 +20,15 @@ void read(const std::string & s, double & value, data_format fmt)
+ 	if (s.empty())
+ 		return;
+ 
+-	static const locale_t locale = ::newlocale(LC_NUMERIC_MASK, "C", nullptr);
+-
+-	char * endptr = nullptr;
+-	value = ::strtod_l(s.c_str(), &endptr, locale);
+-	if (endptr != s.c_str() + s.size())
++	// static const locale_t locale = ::newlocale(LC_NUMERIC_MASK, "C", nullptr);
++	//
++	// char * endptr = nullptr;
++	// value = ::strtod_l(s.c_str(), &endptr, locale);
++	// if (endptr != s.c_str() + s.size())
++	std::stringstream ss;
++	ss << s;
++	ss >> value;
++	if (ss.fail())
+ 		throw std::runtime_error{"invalid string to convert to double: [" + s + "]"};
+ }
+ }
+diff --git a/src/marnav/nmea/mwd.cpp b/src/marnav/nmea/mwd.cpp
+index 27edab1..2bdaad2 100644
+--- a/src/marnav/nmea/mwd.cpp
++++ b/src/marnav/nmea/mwd.cpp
+@@ -34,8 +34,8 @@ mwd::mwd(talker talk, fields::const_iterator first, fields::const_iterator last)
+ 	read(*(first + 6), speed_ms_);
+ 	read(*(first + 7), speed_ms_unit);
+ 
+-	check_value(direction_true_ref, {reference::TRUE}, "direction true ref");
+-	check_value(direction_mag_ref, {reference::MAGNETIC}, "direction magnetic ref");
++	check_value(direction_true_ref, {reference::TRUE_REF}, "direction true ref");
++	check_value(direction_mag_ref, {reference::MAGNETIC_REF}, "direction magnetic ref");
+ 	check_value(speed_kn_unit, {unit::velocity::knot}, "speed knot unit");
+ 	check_value(speed_ms_unit, {unit::velocity::mps}, "speed meters pers second unit");
+ }
+@@ -77,9 +77,9 @@ utils::optional<units::velocity> mwd::get_speed_ms() const
+ void mwd::append_data_to(std::string & s) const
+ {
+ 	append(s, format(direction_true_, 1));
+-	append(s, to_string_if(reference::TRUE, direction_true_));
++	append(s, to_string_if(reference::TRUE_REF, direction_true_));
+ 	append(s, format(direction_mag_, 1));
+-	append(s, to_string_if(reference::MAGNETIC, direction_mag_));
++	append(s, to_string_if(reference::MAGNETIC_REF, direction_mag_));
+ 	append(s, format(speed_kn_, 1));
+ 	append(s, to_string_if(unit::velocity::knot, speed_kn_));
+ 	append(s, format(speed_ms_, 1));
+diff --git a/src/marnav/nmea/mwv.cpp b/src/marnav/nmea/mwv.cpp
+index 718faae..672b878 100644
+--- a/src/marnav/nmea/mwv.cpp
++++ b/src/marnav/nmea/mwv.cpp
+@@ -29,7 +29,7 @@ mwv::mwv(talker talk, fields::const_iterator first, fields::const_iterator last)
+ 
+ void mwv::set_angle(double deg, reference ref)
+ {
+-	check_value(ref, {reference::TRUE, reference::RELATIVE}, "angle_ref");
++	check_value(ref, {reference::TRUE_REF, reference::RELATIVE_REF}, "angle_ref");
+ 	angle_ = deg;
+ 	angle_ref_ = ref;
+ }
+diff --git a/src/marnav/nmea/name.cpp b/src/marnav/nmea/name.cpp
+index 3fcf5a2..7d104cf 100644
+--- a/src/marnav/nmea/name.cpp
++++ b/src/marnav/nmea/name.cpp
+@@ -498,11 +498,11 @@ std::string to_name(quality t)
+ std::string to_name(reference t)
+ {
+ 	switch (t) {
+-		case reference::RELATIVE:
++		case reference::RELATIVE_REF:
+ 			return "relative";
+-		case reference::TRUE:
++		case reference::TRUE_REF:
+ 			return "true";
+-		case reference::MAGNETIC:
++		case reference::MAGNETIC_REF:
+ 			return "magnetic";
+ 	}
+ 	return "-";
+diff --git a/src/marnav/nmea/osd.cpp b/src/marnav/nmea/osd.cpp
+index 4627958..c814617 100644
+--- a/src/marnav/nmea/osd.cpp
++++ b/src/marnav/nmea/osd.cpp
+@@ -34,7 +34,7 @@ osd::osd(talker talk, fields::const_iterator first, fields::const_iterator last)
+ void osd::set_course(double t) noexcept
+ {
+ 	course_ = t;
+-	course_ref_ = reference::TRUE;
++	course_ref_ = reference::TRUE_REF;
+ }
+ 
+ void osd::set_speed(double t) noexcept
+diff --git a/src/marnav/nmea/string.cpp b/src/marnav/nmea/string.cpp
+index 9c44fc5..2b69672 100644
+--- a/src/marnav/nmea/string.cpp
++++ b/src/marnav/nmea/string.cpp
+@@ -118,11 +118,11 @@ std::string to_string(direction t)
+ std::string to_string(reference t)
+ {
+ 	switch (t) {
+-		case reference::TRUE:
++		case reference::TRUE_REF:
+ 			return "T";
+-		case reference::MAGNETIC:
++		case reference::MAGNETIC_REF:
+ 			return "M";
+-		case reference::RELATIVE:
++		case reference::RELATIVE_REF:
+ 			return "R";
+ 	}
+ 	return ""; // never reached, gcc does not get it, prevents compiler warning
 diff --git a/src/marnav/nmea/time.cpp b/src/marnav/nmea/time.cpp
-index 24666d2..b322d87 100644
+index 24666d2..73c89d0 100644
 --- a/src/marnav/nmea/time.cpp
 +++ b/src/marnav/nmea/time.cpp
 @@ -1,5 +1,6 @@
@@ -51,11 +459,119 @@ index 24666d2..b322d87 100644
 +		// std::size_t pos = 0;
 +		// double t = std::stod(str, &pos);
 +		// if (pos != str.size())
++		double t;
 +		std::stringstream ss;
 +		ss << str;
-+		double t = 0.0;
 +		ss >> t;
 +		if (ss.fail())
  			throw std::invalid_argument{"invalid format for 'double'"};
  
  		const uint32_t h = static_cast<uint32_t>(t / 10000) % 100;
+diff --git a/src/marnav/nmea/vdr.cpp b/src/marnav/nmea/vdr.cpp
+index 822f4c3..62c3f42 100644
+--- a/src/marnav/nmea/vdr.cpp
++++ b/src/marnav/nmea/vdr.cpp
+@@ -59,9 +59,9 @@ utils::optional<units::velocity> vdr::get_speed() const
+ void vdr::append_data_to(std::string & s) const
+ {
+ 	append(s, to_string(degrees_true_));
+-	append(s, to_string_if(reference::TRUE, degrees_true_));
++	append(s, to_string_if(reference::TRUE_REF, degrees_true_));
+ 	append(s, to_string(degrees_magn_));
+-	append(s, to_string_if(reference::MAGNETIC, degrees_magn_));
++	append(s, to_string_if(reference::MAGNETIC_REF, degrees_magn_));
+ 	append(s, to_string(speed_));
+ 	append(s, to_string_if(unit::velocity::knot, speed_));
+ }
+diff --git a/src/marnav/nmea/vhw.cpp b/src/marnav/nmea/vhw.cpp
+index 0c0427c..0bc5515 100644
+--- a/src/marnav/nmea/vhw.cpp
++++ b/src/marnav/nmea/vhw.cpp
+@@ -34,8 +34,8 @@ vhw::vhw(talker talk, fields::const_iterator first, fields::const_iterator last)
+ 	read(*(first + 6), speed_kmh_);
+ 	read(*(first + 7), speed_kmh_unit);
+ 
+-	check_value(heading_true_ref, {reference::TRUE}, "heading reference true");
+-	check_value(heading_magn_ref, {reference::MAGNETIC}, "heading reference magnetic");
++	check_value(heading_true_ref, {reference::TRUE_REF}, "heading reference true");
++	check_value(heading_magn_ref, {reference::MAGNETIC_REF}, "heading reference magnetic");
+ 	check_value(speed_knots_unit, {unit::velocity::knot}, "speed_knots_unit");
+ 	check_value(speed_kmh_unit, {unit::velocity::kmh}, "speed_kmh_unit");
+ }
+@@ -63,9 +63,9 @@ void vhw::set_speed_kmh(units::velocity t) noexcept
+ void vhw::append_data_to(std::string & s) const
+ {
+ 	append(s, to_string(heading_true_));
+-	append(s, to_string_if(reference::TRUE, heading_true_));
++	append(s, to_string_if(reference::TRUE_REF, heading_true_));
+ 	append(s, to_string(heading_magn_));
+-	append(s, to_string_if(reference::MAGNETIC, heading_magn_));
++	append(s, to_string_if(reference::MAGNETIC_REF, heading_magn_));
+ 	append(s, to_string(speed_knots_));
+ 	append(s, to_string_if(unit::velocity::knot, speed_knots_));
+ 	append(s, to_string(speed_kmh_));
+diff --git a/src/marnav/nmea/vtg.cpp b/src/marnav/nmea/vtg.cpp
+index d4b655d..09d4141 100644
+--- a/src/marnav/nmea/vtg.cpp
++++ b/src/marnav/nmea/vtg.cpp
+@@ -40,8 +40,8 @@ vtg::vtg(talker talk, fields::const_iterator first, fields::const_iterator last)
+ 	if (size > 8)
+ 		read(*(first + 8), mode_ind_);
+ 
+-	check_value(track_true_ref, {reference::TRUE}, "track true ref");
+-	check_value(track_magn_ref, {reference::MAGNETIC}, "track mangetic ref");
++	check_value(track_true_ref, {reference::TRUE_REF}, "track true ref");
++	check_value(track_magn_ref, {reference::MAGNETIC_REF}, "track mangetic ref");
+ 	check_value(speed_kn_unit, {unit::velocity::knot}, "speed_kn_unit");
+ 	check_value(speed_kmh_unit, {unit::velocity::kmh}, "speed_kmh_unit");
+ }
+@@ -83,9 +83,9 @@ utils::optional<units::kilometers_per_hour> vtg::get_speed_kmh() const
+ void vtg::append_data_to(std::string & s) const
+ {
+ 	append(s, to_string(track_true_));
+-	append(s, to_string_if(reference::TRUE, track_true_));
++	append(s, to_string_if(reference::TRUE_REF, track_true_));
+ 	append(s, to_string(track_magn_));
+-	append(s, to_string_if(reference::MAGNETIC, track_magn_));
++	append(s, to_string_if(reference::MAGNETIC_REF, track_magn_));
+ 	append(s, to_string(speed_kn_));
+ 	append(s, to_string_if(unit::velocity::knot, speed_kn_));
+ 	append(s, to_string(speed_kmh_));
+diff --git a/test/nmea/Benchmark_nmea_io.cpp b/test/nmea/Benchmark_nmea_io.cpp
+index 37b556e..ceeb296 100644
+--- a/test/nmea/Benchmark_nmea_io.cpp
++++ b/test/nmea/Benchmark_nmea_io.cpp
+@@ -10,9 +10,13 @@ void read_v0(const std::string & s, double & value)
+ {
+ 	if (s.empty())
+ 		return;
+-	std::size_t pos = 0;
+-	value = std::stod(s, &pos);
+-	if (pos != s.size())
++	// std::size_t pos = 0;
++	// value = std::stod(s, &pos);
++	// if (pos != s.size())
++	std::stringstream ss;
++	ss << s;
++	ss >> value;
++	if (ss.fail())
+ 		throw std::runtime_error{"invalid string to convert to double: [" + s + "]"};
+ }
+ 
+@@ -45,9 +49,13 @@ void read_v3(const std::string & s, double & value)
+ 
+ 	if (s.empty())
+ 		return;
+-	char * endptr = nullptr;
+-	value = ::strtod_l(s.c_str(), &endptr, locale);
+-	if (endptr != s.c_str() + s.size())
++	// char * endptr = nullptr;
++	// value = ::strtod_l(s.c_str(), &endptr, locale);
++	// if (endptr != s.c_str() + s.size())
++	std::stringstream ss;
++	ss << s;
++	ss >> value;
++	if (ss.fail())
+ 		throw std::runtime_error{"invalid string to convert to double: [" + s + "]"};
+ }
+ }
