@@ -36,7 +36,7 @@ namespace sgps {
     }
     std::string lon_str("-");
     if (m_longitude.has_value()) {
-      marnav::geo::latitude lon_angle(m_longitude.value());
+      marnav::geo::longitude lon_angle(m_longitude.value());
       lon_str = fmt::format("{} {:03}°{:02}.{:0.3f}", marnav::geo::to_string(lon_angle.hem()), lon_angle.degrees(), lon_angle.minutes(), lon_angle.seconds());
     }
     auto position = fmt::format("{} - {}", lat_str, lon_str);
@@ -48,7 +48,7 @@ namespace sgps {
 
     std::string sog_str(" - ");
     if (m_speed.has_value()) {
-      sog_str = fmt::format("{:02.1f}", m_speed.value() / 1.85);
+      sog_str = fmt::format("{:02.1f}", m_speed.value());
     }
     return fmt::format(R"(
   POS: {}
