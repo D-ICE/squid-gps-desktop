@@ -11,6 +11,11 @@ BackEnd::BackEnd(QObject *parent) :
   ConnectNMEA(m_listener_err);
 }
 
+BackEnd::~BackEnd() {
+  DisconnectNMEA(m_listener_err);
+  Disconnect(m_listener_err);
+}
+
 QString BackEnd::squid_connection_status() const {
   switch (m_squid_connection_state) {
     case DISCONNECTED:
@@ -99,8 +104,8 @@ void BackEnd::DisconnectNMEA(std::error_code& err) {
     m_listener_context_thread->join();
     m_listener_context_thread.reset();
   }
-  m_listener_context.reset();
   m_listener.reset();
+  m_listener_context.reset();
 }
 
 

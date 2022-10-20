@@ -2,6 +2,7 @@
 #define SGPS_MODEL_H_
 
 #include <optional>
+#include <string>
 
 namespace sgps {
 

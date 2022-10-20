@@ -30,6 +30,7 @@ class BackEnd : public QObject {
   };
 
   explicit BackEnd(QObject *parent = nullptr);
+  ~BackEnd();
 
   QString squid_connection_status() const;
   QString nmea_displayed_frames() const;
