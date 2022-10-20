@@ -37,6 +37,7 @@ set(squid-gps-desktop_libraries
 )
 if(WIN32)
   set(squid-gps-desktop_libraries ${squid-gps-desktop_libraries} wsock32 ws2_32)
+  target_compile_definitions(squid-gps-desktop PRIVATE CO_INITIALIZE)
 endif()
 target_link_libraries(squid-gps-desktop PRIVATE ${squid-gps-desktop_libraries})
 
