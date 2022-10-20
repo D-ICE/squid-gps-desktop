@@ -30,7 +30,7 @@ TEST(sgps, basic) {
     context.run();
   });
 
-  server.Connect([](){}, err);
+  server.Connect([](){},[](){}, err);
   ASSERT_FALSE(err);
 
   context_thread.join();
