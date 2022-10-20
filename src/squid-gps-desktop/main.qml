@@ -87,7 +87,7 @@ ApplicationWindow {
           x: parent.width - port_label.x - width
           text: backend.nmea_udp_port
           onEditingFinished: backend.nmea_udp_port = text
-          validator: IntValidator {bottom: 4096; top: 65535}
+          validator: IntValidator {bottom: 1000; top: 65535}
         }
       }
 
