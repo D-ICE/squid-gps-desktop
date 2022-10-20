@@ -13,8 +13,12 @@ if(NOT marnav_POPULATED)
   set(ENABLE_TESTS OFF CACHE BOOL "" FORCE)
   set(ENABLE_TESTS_BENCHMARK OFF CACHE BOOL "" FORCE)
   set(ENABLE_TOOLS OFF CACHE BOOL "" FORCE)
+  set(ENABLE_IO OFF CACHE BOOL "" FORCE)
 
   add_subdirectory(${marnav_SOURCE_DIR} ${marnav_BINARY_DIR})
+  if (WIN32)
+	  target_compile_options(marnav PRIVATE -Wno-error)
+  endif()
 endif()
 
 set_target_properties(marnav PROPERTIES FOLDER deps)
