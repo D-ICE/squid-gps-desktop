@@ -1,4 +1,11 @@
 #include "backend.h"
+
+#include <thread>
+
+#include <QStandardPaths>
+#include <QIODevice>
+#include <QFile>
+
 #include <spdlog/spdlog.h>
 
 const uint16_t BackEnd::kDefaultNMEAPort = 6000;
@@ -7,7 +14,8 @@ BackEnd::BackEnd(QObject *parent) :
     QObject(parent),
     m_squid_connection_state(DISCONNECTED),
     m_settings("Squid", "SquidGPSDesktop"),
-    m_controller(m_model) {
+    m_controller(m_model),
+    m_connect_roadbook(false) {
   ConnectNMEA(m_listener_err);
 }
 
@@ -184,4 +192,36 @@ void BackEnd::Disconnect(std::error_code& err) {
 
 QString BackEnd::current_state() const {
   return {m_model.TextFormatted().c_str()};
+}
+
+bool BackEnd::connect_roadbook() const {
+  return m_connect_roadbook;
+}
+
+void BackEnd::set_connect_roadbook(bool value) {
+  m_connect_roadbook = value;
+  if (!m_connect_roadbook) {
+    if (m_roadbook_connection_thread) {
+      m_roadbook_connection_thread->join();
+      m_roadbook_connection_thread.reset();
+    }
+    return;
+  }
+  m_roadbook_connection_thread = std::make_shared<std::thread>([this](){
+    while(m_connect_roadbook) {
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      // TODO log to file !
+      auto app_data = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+      auto log_file_path = app_data.append("/../log/current.csv");
+      {
+        QFile log_file(log_file_path);
+        if(!log_file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+          spdlog::error("Cannot open log file at {}", log_file_path.toStdString());
+          continue;
+        }
+        QTextStream stream(&log_file);
+        stream << QString(m_model.CSVFormatted().c_str());
+      }
+    }
+  });
 }

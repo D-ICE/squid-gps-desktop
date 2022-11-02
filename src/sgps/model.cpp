@@ -56,4 +56,20 @@ namespace sgps {
   SOG: {} kn
     )", position, hdg_str, sog_str);
   }
+
+  std::string Model::CSVFormatted() const {
+    auto now = std::chrono::system_clock::now().time_since_epoch();
+    auto timestamp = std::chrono::duration_cast<std::chrono::seconds>(now).count();
+    return fmt::format(
+      "{};{};{};{};{};{};{};{}",
+      timestamp,
+      m_latitude ? m_latitude.value() : 0.0,
+      m_longitude ? m_longitude.value() : 0.0,
+      0.0,
+      m_wind_speed ? m_wind_speed.value() : 0.0,
+      m_wind_direction ? m_wind_direction.value() : 0.0,
+      m_wind_angle ? m_wind_angle.value() : 0.0,
+      m_heading ? m_heading.value() : 0.0
+    );
+  }
 }  // namespace sgps
