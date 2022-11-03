@@ -208,14 +208,29 @@ void BackEnd::set_connect_roadbook(bool value) {
     return;
   }
   m_roadbook_connection_thread = std::make_shared<std::thread>([this](){
+    uint8_t index = 0;
     while(m_connect_roadbook) {
       std::this_thread::sleep_for(std::chrono::seconds(1));
-      // TODO log to file !
+      index += 1;
+      // log current position
       auto app_data = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-      auto log_file_path = app_data.append("/../log/current.csv");
       {
+        auto log_file_path = app_data.append("/../log/current.csv");
         QFile log_file(log_file_path);
         if(!log_file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+          spdlog::error("Cannot open log file at {}", log_file_path.toStdString());
+          continue;
+        }
+        QTextStream stream(&log_file);
+        stream << QString(m_model.CSVFormatted().c_str());
+      }
+      // Log to trace every 15 seconds
+      if (index >= 15) {
+        index = 0;
+
+        auto log_file_path = app_data.append("/../log/trace.csv");
+        QFile log_file(log_file_path);
+        if(!log_file.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
           spdlog::error("Cannot open log file at {}", log_file_path.toStdString());
           continue;
         }
