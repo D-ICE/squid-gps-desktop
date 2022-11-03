@@ -10,7 +10,7 @@
 
 TEST(sgps, basic) {
   spdlog::set_level(spdlog::level::info);
-  uint16_t port = 6001;
+  uint16_t port = 5522;
 
   std::error_code err;
   asio::io_context context;

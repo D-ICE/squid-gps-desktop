@@ -113,7 +113,11 @@ namespace sgps {
           if (info.value().transducer_type != 'P') {
             continue;
           }
-          model.set_pressure(info.value().measurement_data * 0.01);  // XDR pressure is in pascal
+          if (info.value().units_of_measurement == 'P') {  // Pascal
+            model.set_pressure(info.value().measurement_data * 0.01);
+          } else if (info.value().units_of_measurement == 'B') {  // Bar
+            model.set_pressure(info.value().measurement_data * 1000);
+          }
         } catch (const std::out_of_range&) {
           return;
         }
