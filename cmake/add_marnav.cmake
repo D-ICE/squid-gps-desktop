@@ -5,6 +5,11 @@ FetchContent_Declare(marnav
   PATCH_COMMAND git init && git apply --verbose --ignore-whitespace "${PROJECT_SOURCE_DIR}/cmake/patches/marnav.patch"
 )
 
+#FetchContent_Declare(marnav
+#  GIT_REPOSITORY https://github.com/mariokonrad/marnav/
+#  GIT_TAG v0.13.0
+#)
+
 FetchContent_GetProperties(marnav)
 if(NOT marnav_POPULATED)
   FetchContent_Populate(marnav)

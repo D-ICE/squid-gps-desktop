@@ -247,6 +247,19 @@ index c1c8200..e35a2a6 100644
  	append(s, to_string(waypoint_to_));
  	append(s, to_string(waypoint_from_));
  }
+diff --git a/src/marnav/nmea/gga.cpp b/src/marnav/nmea/gga.cpp
+index e63311a..263ebe0 100644
+--- a/src/marnav/nmea/gga.cpp
++++ b/src/marnav/nmea/gga.cpp
+@@ -37,7 +37,7 @@ gga::gga(talker talk, fields::const_iterator first, fields::const_iterator last)
+ 	read(*(first + 10), geodial_separation_);
+ 	read(*(first + 11), geodial_separation_unit);
+ 	read(*(first + 12), dgps_age_);
+-	read(*(first + 13), dgps_ref_);
++//	read(*(first + 13), dgps_ref_);
+ 
+ 	check_value(altitude_unit, {unit::distance::meter}, "altitude unit");
+ 	check_value(geodial_separation_unit, {unit::distance::meter}, "geodial separation unit");
 diff --git a/src/marnav/nmea/hdm.cpp b/src/marnav/nmea/hdm.cpp
 index af7130e..160f37f 100644
 --- a/src/marnav/nmea/hdm.cpp
@@ -419,6 +432,19 @@ index 4627958..c814617 100644
  }
  
  void osd::set_speed(double t) noexcept
+diff --git a/src/marnav/nmea/rmc.cpp b/src/marnav/nmea/rmc.cpp
+index 59b0dbe..514c5cb 100644
+--- a/src/marnav/nmea/rmc.cpp
++++ b/src/marnav/nmea/rmc.cpp
+@@ -21,7 +21,7 @@ rmc::rmc(talker talk, fields::const_iterator first, fields::const_iterator last)
+ {
+ 	// before and after NMEA 2.3
+ 	const auto size = std::distance(first, last);
+-	if ((size < 11) || (size > 12))
++	if ((size < 11))// || (size > 12))
+ 		throw std::invalid_argument{"invalid number of fields in rmc"};
+ 
+ 	read(*(first + 0), time_utc_);
 diff --git a/src/marnav/nmea/string.cpp b/src/marnav/nmea/string.cpp
 index 9c44fc5..2b69672 100644
 --- a/src/marnav/nmea/string.cpp
