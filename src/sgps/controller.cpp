@@ -13,6 +13,8 @@
 #include <marnav/nmea/hdt.hpp>
 #include <marnav/nmea/mwv.hpp>
 #include <marnav/nmea/mwd.hpp>
+#include <marnav/nmea/mmb.hpp>
+#include <marnav/nmea/xdr.hpp>
 
 namespace sgps {
   namespace internal {
@@ -94,6 +96,29 @@ namespace sgps {
         model.set_wind_speed(s.get_speed_ms().value().get<marnav::units::knots>().value());
       }
     }
+    void OnSentence(const marnav::nmea::mmb& s, Model& model) {
+      if (s.get_pressure_bars()) {
+        model.set_pressure(s.get_pressure_bars().value() * 1000);  // 1 bar = 1000hPa
+      } else if (s.get_pressure_inches_of_mercury()) {
+        model.set_pressure(s.get_pressure_bars().value() * 33.86);  // 1 inch of mercury = 33.86hPa
+      }
+    }
+    void OnSentence(const marnav::nmea::xdr& s, Model& model) {
+      for (auto i = 0; i < marnav::nmea::xdr::max_transducer_info; i++) {
+        try {
+          auto info = s.get_info(i);
+          if (!info) {
+            continue;
+          }
+          if (info.value().transducer_type != 'P') {
+            continue;
+          }
+          model.set_pressure(info.value().measurement_data * 0.01);  // XDR pressure is in pascal
+        } catch (const std::out_of_range&) {
+          return;
+        }
+      }
+    }
 
     template <typename Sentence>
     void OnSentence(const marnav::nmea::sentence& s, Model& model) {
@@ -121,7 +146,9 @@ namespace sgps {
     REGISTER(HDT, hdt),
     REGISTER(HDG, hdg),
     REGISTER(MWV, mwv),
-    REGISTER(MWD, mwd)
+    REGISTER(MWD, mwd),
+    REGISTER(MMB, mmb),
+    REGISTER(XDR, xdr)
   };
 
   Controller::Controller(Model& model) : m_model(model) {}

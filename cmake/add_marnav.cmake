@@ -1,7 +1,7 @@
 include(FetchContent)
 
 FetchContent_Declare(marnav
-  URL https://github.com/mariokonrad/marnav/archive/refs/tags/v0.13.0.zip
+  URL https://github.com/D-ICE/marnav/archive/refs/tags/v0.13.1.zip
   PATCH_COMMAND git init && git apply --verbose --ignore-whitespace "${PROJECT_SOURCE_DIR}/cmake/patches/marnav.patch"
 )
 
