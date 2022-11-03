@@ -18,6 +18,7 @@ class BackEnd : public QObject {
   Q_PROPERTY(QString nmea_displayed_frames READ nmea_displayed_frames NOTIFY nmea_displayed_frames_changed)
   Q_PROPERTY(uint16_t nmea_udp_port READ nmea_udp_port WRITE set_nmea_udp_port NOTIFY nmea_udp_port_changed)
   Q_PROPERTY(QString current_state READ current_state NOTIFY current_state_changed)
+  Q_PROPERTY(bool connect_roadbook READ connect_roadbook WRITE set_connect_roadbook NOTIFY connect_roadbook_changed)
   QML_ELEMENT
 
   static const uint16_t kDefaultNMEAPort;
@@ -36,15 +37,18 @@ class BackEnd : public QObject {
   QString nmea_displayed_frames() const;
   uint16_t nmea_udp_port() const;
   QString current_state() const;
+  bool connect_roadbook() const;
 
   Q_INVOKABLE void UpdateSquidState(bool checked);
   void set_nmea_udp_port(uint16_t value);
+  void set_connect_roadbook(bool value);
 
  signals:
   void squid_connection_status_changed();
   void nmea_displayed_frames_changed();
   void nmea_udp_port_changed();
   void current_state_changed();
+  void connect_roadbook_changed();
 
  private:
   void Connect(std::error_code& err);
@@ -77,6 +81,9 @@ class BackEnd : public QObject {
   std::mutex m_squid_connection_mutex;
   std::condition_variable m_squid_connection_condition_variable;
   std::shared_ptr<std::thread> m_squid_connection_thread;
+
+  bool m_connect_roadbook;
+  std::shared_ptr<std::thread> m_roadbook_connection_thread;
 };
 
 #endif // SQUID_GPS_DESKTOP_BACKEND_H

@@ -11,6 +11,8 @@
 #include <marnav/nmea/vhw.hpp>
 #include <marnav/nmea/hdg.hpp>
 #include <marnav/nmea/hdt.hpp>
+#include <marnav/nmea/mwv.hpp>
+#include <marnav/nmea/mwd.hpp>
 
 namespace sgps {
   namespace internal {
@@ -69,6 +71,29 @@ namespace sgps {
     void OnSentence(const marnav::nmea::hdg& s, Model& model) {
       if (s.get_heading()) { model.set_heading(s.get_heading().value()); }
     }
+    void OnSentence(const marnav::nmea::mwv& s, Model& model) {
+      if (!(s.get_data_valid() && s.get_data_valid().value() == marnav::nmea::status::ok)) {
+        return;
+      }
+      if (s.get_angle() && s.get_angle_ref() && s.get_angle_ref().value() == marnav::nmea::reference::TRUE_REF) {
+        model.set_wind_angle(s.get_angle().value());
+      }
+      if (s.get_speed()) {
+        model.set_wind_speed(s.get_speed().value().get<marnav::units::knots>().value());
+      }
+    }
+    void OnSentence(const marnav::nmea::mwd& s, Model& model) {
+      if (s.get_direction_true().has_value()) {
+        model.set_wind_direction(s.get_direction_true().value());
+      } else if (s.get_direction_mag().has_value()) {
+        model.set_wind_direction(s.get_direction_mag().value());
+      }
+      if (s.get_speed_kn()) {
+        model.set_wind_speed(s.get_speed_kn().value().get<marnav::units::knots>().value());
+      } else if (s.get_speed_ms()) {
+        model.set_wind_speed(s.get_speed_ms().value().get<marnav::units::knots>().value());
+      }
+    }
 
     template <typename Sentence>
     void OnSentence(const marnav::nmea::sentence& s, Model& model) {
@@ -94,7 +119,9 @@ namespace sgps {
     REGISTER(VTG, vtg),
     REGISTER(VHW, vhw),
     REGISTER(HDT, hdt),
-    REGISTER(HDG, hdg)
+    REGISTER(HDG, hdg),
+    REGISTER(MWV, mwv),
+    REGISTER(MWD, mwd)
   };
 
   Controller::Controller(Model& model) : m_model(model) {}
