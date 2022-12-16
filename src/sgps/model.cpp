@@ -65,7 +65,7 @@ namespace sgps {
       timestamp,
       m_latitude ? m_latitude.value() : 0.0,
       m_longitude ? m_longitude.value() : 0.0,
-      0.0,
+      m_pressure ? m_pressure.value() : 1013.0,
       m_wind_speed ? m_wind_speed.value() : 0.0,
       m_wind_direction ? m_wind_direction.value() : 0.0,
       m_wind_angle ? m_wind_angle.value() : 0.0,

@@ -16,6 +16,10 @@ Supported frames are:
 * VHW: heading, speed
 * HDT: heading
 * HDG: heading
+* MWV: wind speed & angle
+* MWD: wind speed & direction
+* MMB: pressure
+* XDR: pressure
 
 ## Tests
 

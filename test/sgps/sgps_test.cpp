@@ -1,5 +1,8 @@
+#include <fstream>
+
 #include <gtest/gtest.h>
 #include <spdlog/spdlog.h>
+#include <marnav/nmea/nmea.hpp>
 
 #include "sgps/controller.h"
 #include "sgps/nmea_listener.h"
@@ -7,7 +10,7 @@
 
 TEST(sgps, basic) {
   spdlog::set_level(spdlog::level::info);
-  uint16_t port = 6001;
+  uint16_t port = 5522;
 
   std::error_code err;
   asio::io_context context;
@@ -34,4 +37,19 @@ TEST(sgps, basic) {
   ASSERT_FALSE(err);
 
   context_thread.join();
+}
+
+TEST(sgps, frames) {
+  sgps::Model model;
+  sgps::Controller controller(model);
+
+  std::ifstream infile(FRAMES_TXT);
+  std::string line;
+  while (std::getline(infile, line)) {
+    try {
+      auto value = marnav::nmea::make_sentence(line);
+    } catch (std::invalid_argument) {
+      spdlog::info("Error on {}", line);
+    }
+  }
 }
