@@ -11,13 +11,16 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 set(CMAKE_CXX_STANDARD 17)
 option(squid_gps_desktop_enable_tests "Enable tests" ${squid_gps_desktop_is_toplevel_project})
-option(squid_gps_enable_gui "Enable tests" ON)
+
+find_package(Qt6)
+option(squid_gps_enable_gui "Enable GUI components" ${QT_FOUND})
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/add_asio.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/add_marnav.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/add_json.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/add_fmt.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/add_spdlog.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/add_cxxopts.cmake)
 
 add_subdirectory(src)
 include_directories(src)
