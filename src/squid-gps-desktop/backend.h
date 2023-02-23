@@ -39,7 +39,7 @@ class BackEnd : public QObject {
   QString current_state() const;
   bool connect_roadbook() const;
 
-  Q_INVOKABLE void UpdateSquidState(bool checked);
+  Q_INVOKABLE void UpdateSquidState(bool checked, uint16_t port);
   void set_nmea_udp_port(uint16_t value);
   void set_connect_roadbook(bool value);
 
@@ -51,7 +51,7 @@ class BackEnd : public QObject {
   void connect_roadbook_changed();
 
  private:
-  void Connect(std::error_code& err);
+  void Connect(std::error_code& err, uint16_t port);
   void Disconnect(std::error_code& err);
 
   void ConnectNMEA(std::error_code& err);

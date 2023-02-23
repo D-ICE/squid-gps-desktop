@@ -104,20 +104,36 @@ ApplicationWindow {
             Layout.fillWidth: true
             title: qsTr("SquidX Connection")
 
-            contentItem: RowLayout {
-                Label {
-                    text: backend.squid_connection_status
-                    font.pixelSize: 15
-                    font.bold: true
-                    Layout.fillWidth: true
+            contentItem: ColumnLayout {
+                RowLayout {
+                    Label {
+                        Layout.fillWidth: true
+                        text: qsTr("Port")
+                        font.pixelSize: 15
+                        font.bold: true
+                    }
+                    TextField {
+                        id: squidXPortTextField
+                        text: "8000"
+                        Layout.preferredWidth: 100
+                        validator: IntValidator {bottom: 1000; top: 65535}
+                    }
                 }
-                Button {
-                    checkable: true
-                    onClicked: backend.UpdateSquidState(checked)
-                    text: checked ? qsTr("Cancel") : qsTr("Connect")
-                    background: Rectangle {
-                        radius: 3
-                        color: parent.checked ? "#D75D5F" : "#4AF28E"
+                RowLayout {
+                    Label {
+                        text: backend.squid_connection_status
+                        font.pixelSize: 15
+                        font.bold: true
+                        Layout.fillWidth: true
+                    }
+                    Button {
+                        checkable: true
+                        onClicked: backend.UpdateSquidState(checked, squidXPortTextField.text)
+                        text: checked ? qsTr("Cancel") : qsTr("Connect")
+                        background: Rectangle {
+                            radius: 3
+                            color: parent.checked ? "#D75D5F" : "#4AF28E"
+                        }
                     }
                 }
             }

@@ -117,11 +117,11 @@ void BackEnd::DisconnectNMEA(std::error_code& err) {
 }
 
 
-void BackEnd::UpdateSquidState(bool checked) {
+void BackEnd::UpdateSquidState(bool checked, uint16_t port) {
   std::error_code err;
   if (checked) {
     m_squid_connection_state = CONNECTING;
-    Connect(err);  // TODO handle err
+    Connect(err, port);  // TODO handle err
   } else {
     m_squid_connection_state = DISCONNECTED;
     Disconnect(err);
@@ -129,12 +129,12 @@ void BackEnd::UpdateSquidState(bool checked) {
   emit squid_connection_status_changed();
 }
 
-void BackEnd::Connect(std::error_code& err) {
+void BackEnd::Connect(std::error_code& err, uint16_t port) {
   spdlog::trace("Building context");
   m_squid_context = std::make_shared<asio::io_context>();
 
   spdlog::trace("Building squid server");
-  m_squid_server = std::make_shared<sgps::SquidGPSServer>(*m_squid_context, m_model);
+  m_squid_server = std::make_shared<sgps::SquidGPSServer>(*m_squid_context, m_model, port);
   m_squid_server->Initialize(err);
   if (err) {
     return;

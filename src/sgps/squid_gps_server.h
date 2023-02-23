@@ -10,7 +10,7 @@ namespace sgps {
 
   class SquidGPSServer {
    public:
-    SquidGPSServer(asio::io_context& context, const Model& model);
+    SquidGPSServer(asio::io_context& context, const Model& model, uint16_t squidx_connection_port);
     void Initialize(std::error_code& err);
     void Connect(std::function<void()> on_connected, std::function<void()> on_disconnected, std::error_code& err);
 
@@ -18,7 +18,7 @@ namespace sgps {
     void Listen();
 
    private:
-    static uint16_t kSquidXConnectionPort;
+    uint16_t m_squidx_connection_port;
     asio::io_context& m_context;
     asio::ip::tcp::acceptor m_acceptor;
     const Model& m_model;

@@ -25,7 +25,7 @@ TEST(sgps, basic) {
     controller.OnSentence(*sentence);
   });
 
-  sgps::SquidGPSServer server(context, model);
+  sgps::SquidGPSServer server(context, model, 8000);
   server.Initialize(err);
   ASSERT_FALSE(err);
 
