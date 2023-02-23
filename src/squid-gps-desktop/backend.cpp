@@ -8,7 +8,7 @@
 
 #include <spdlog/spdlog.h>
 
-const uint16_t BackEnd::kDefaultNMEAPort = 6000;
+const uint16_t BackEnd::kDefaultNMEAPort = 7000;
 
 BackEnd::BackEnd(QObject *parent) :
     QObject(parent),
