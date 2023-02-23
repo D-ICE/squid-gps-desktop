@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
   }
 
   auto port = result["port"].as<uint16_t>();
-  auto squidXPort = result["squidx_port"].as<uint16_t>();
+  auto squidx_port = result["squidx_port"].as<uint16_t>();
   spdlog::set_level(spdlog::level::trace);
   if (!result["verbose"].as<bool>()) {
     spdlog::set_level(spdlog::level::warn);
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
   });
 
   // Connect to squid
-  auto squid_server = std::make_shared<sgps::SquidGPSServer>(context, model, squidXPort);
+  auto squid_server = std::make_shared<sgps::SquidGPSServer>(context, model, squidx_port);
   squid_server->Initialize(err);
   if (err) {
     spdlog::error("Could not initialize squid server: {}", port, err.message());
