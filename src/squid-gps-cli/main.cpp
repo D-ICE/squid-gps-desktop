@@ -45,6 +45,7 @@ int main(int argc, char* argv[]) {
   cxxopts::Options options(argv[0], "Squid GPS from command line");
   options.add_options()
     ("p,port", "NMEA data UDP port", cxxopts::value<uint16_t>()->default_value("7000"))
+    ("s,squidx_port", "SquidX UDP port", cxxopts::value<uint16_t>()->default_value("8000"))
     ("v,verbose", "Verbose output", cxxopts::value<bool>()->default_value("false"))
     ;
   auto result = options.parse(argc, argv);
@@ -54,6 +55,7 @@ int main(int argc, char* argv[]) {
   }
 
   auto port = result["port"].as<uint16_t>();
+  auto squidx_port = result["squidx_port"].as<uint16_t>();
   spdlog::set_level(spdlog::level::trace);
   if (!result["verbose"].as<bool>()) {
     spdlog::set_level(spdlog::level::warn);
@@ -77,7 +79,7 @@ int main(int argc, char* argv[]) {
   });
 
   // Connect to squid
-  auto squid_server = std::make_shared<sgps::SquidGPSServer>(context, model);
+  auto squid_server = std::make_shared<sgps::SquidGPSServer>(context, model, squidx_port);
   squid_server->Initialize(err);
   if (err) {
     spdlog::error("Could not initialize squid server: {}", port, err.message());

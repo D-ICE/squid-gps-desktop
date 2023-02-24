@@ -66,12 +66,11 @@ class Connection : public std::enable_shared_from_this<Connection> {
   std::array<char, 4096> m_datagram;
 };
 
-uint16_t SquidGPSServer::kSquidXConnectionPort = 8000;
-
-SquidGPSServer::SquidGPSServer(asio::io_context& context, const Model& model) :
+SquidGPSServer::SquidGPSServer(asio::io_context& context, const Model& model, uint16_t squidx_connection_port) :
   m_context(context),
   m_acceptor(context),
-  m_model(model) {}
+  m_model(model),
+  m_squidx_connection_port(squidx_connection_port){}
 
 void SquidGPSServer::Initialize(std::error_code &err) {
   m_acceptor.open(asio::ip::tcp::v4(), err);
@@ -128,7 +127,7 @@ void SquidGPSServer::Connect(std::function<void()> on_connected,
   spdlog::info("[sgps] Sending a connection request to SquidX");
   auto payload = std::to_string(m_acceptor.local_endpoint().port());
   socket.send_to(asio::buffer(payload),
-                 asio::ip::udp::endpoint(asio::ip::address_v4::broadcast(), kSquidXConnectionPort),
+                 asio::ip::udp::endpoint(asio::ip::address_v4::broadcast(), m_squidx_connection_port),
                  0, err);
 }
 
