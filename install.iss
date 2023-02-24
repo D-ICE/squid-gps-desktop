@@ -5,7 +5,7 @@
 
 [Setup]
 AppName=Squid GPS Desktop
-AppVersion=1.2
+AppVersion=1.3
 WizardStyle=modern
 DefaultDirName={autopf}\squid-gps-desktop
 DefaultGroupName=Squid
