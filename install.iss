@@ -3,14 +3,17 @@
 
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING .ISS SCRIPT FILES!
 
+#define version "1.4"
+
 [Setup]
 AppName=Squid GPS Desktop
-AppVersion=1.3
+AppVersion={#version}
 WizardStyle=modern
 DefaultDirName={autopf}\squid-gps-desktop
 DefaultGroupName=Squid
 Compression=lzma2
 SolidCompression=yes
+OutputBaseFilename=SquidGPSDesktop-v{#version}
 
 [Files]
 Source: "install/*"; DestDir: "{app}"; Flags: recursesubdirs
