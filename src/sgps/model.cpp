@@ -22,6 +22,16 @@ namespace sgps {
       // Note: knots to SquidX unit conversion required
       json["Speed"] = m_speed.value() / 1.85;
     }
+    if (m_pressure.has_value()) {
+      json["Pressure"] = m_pressure.value();
+    }
+    if (m_wind_speed.has_value()) {
+      json["TWS"] = m_wind_speed.value();
+    }
+    if (m_wind_direction.has_value()) {
+      json["TWD"] = m_wind_direction.value();
+    }
+
     if (json.is_null()) {
       return "{}";
     }
