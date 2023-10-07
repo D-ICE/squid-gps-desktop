@@ -14,7 +14,7 @@ namespace sgps {
     void set_speed(double value) { m_speed = value; }
     void set_wind_speed(double value) { m_wind_speed = value; }
     void set_wind_direction(double value) { m_wind_direction = value; }
-    void set_wind_angle(double value) { m_wind_speed = value; }
+    void set_wind_angle(double value) { m_wind_angle = value; }
     void set_pressure(double value) { m_pressure = value; }
     
     std::string SquidXFormatted() const;

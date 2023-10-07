@@ -31,6 +31,9 @@ namespace sgps {
     if (m_wind_direction.has_value()) {
       json["TWD"] = m_wind_direction.value();
     }
+    if (m_wind_angle.has_value()) {
+      json["TWA"] = m_wind_angle.value();
+    }
 
     if (json.is_null()) {
       return "{}";
