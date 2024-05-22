@@ -110,11 +110,11 @@ namespace sgps {
           if (!info) {
             continue;
           }
-          if (info.value().transducer_type != 'P') {
+          if (info.value().transducer_type != 'P' && info.value().transducer_type != 'G') {
             continue;
           }
           if (info.value().units_of_measurement == 'P') {  // Pascal
-            model.set_pressure(info.value().measurement_data * 0.01);
+            model.set_pressure(info.value().measurement_data); // don't convert to hPa
           } else if (info.value().units_of_measurement == 'B') {  // Bar
             model.set_pressure(info.value().measurement_data * 1000);
           }
