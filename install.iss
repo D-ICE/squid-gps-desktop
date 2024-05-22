@@ -3,7 +3,7 @@
 
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING .ISS SCRIPT FILES!
 
-#define version "1.5"
+#define version "1.5-special"
 
 [Setup]
 AppName=Squid GPS Desktop
