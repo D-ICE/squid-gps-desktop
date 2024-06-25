@@ -14,12 +14,13 @@
 
 class BackEnd : public QObject {
   Q_OBJECT
+  QML_SINGLETON
+  QML_ELEMENT
   Q_PROPERTY(QString squid_connection_status READ squid_connection_status NOTIFY squid_connection_status_changed)
   Q_PROPERTY(QString nmea_displayed_frames READ nmea_displayed_frames NOTIFY nmea_displayed_frames_changed)
   Q_PROPERTY(uint16_t nmea_udp_port READ nmea_udp_port WRITE set_nmea_udp_port NOTIFY nmea_udp_port_changed)
   Q_PROPERTY(QString current_state READ current_state NOTIFY current_state_changed)
   Q_PROPERTY(bool connect_roadbook READ connect_roadbook WRITE set_connect_roadbook NOTIFY connect_roadbook_changed)
-  QML_ELEMENT
 
   static const uint16_t kDefaultNMEAPort;
 

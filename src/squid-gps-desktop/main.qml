@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import backend 1.0
+import backend
 
 ApplicationWindow {
     title: qsTr("Squid GPS")
@@ -9,10 +9,6 @@ ApplicationWindow {
     width: 640
     height: columnLayout.implicitHeight + 80
     color: "#192633"
-
-    BackEnd {
-        id: backend
-    }
 
     component SquidGroupBox: GroupBox {
         id: control
@@ -56,7 +52,7 @@ ApplicationWindow {
             Layout.fillWidth: true
             Label {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: backend.current_state
+                text: BackEnd.current_state
                 font.family: "Monospace"
                 font.pixelSize: 13
             }
@@ -79,8 +75,8 @@ ApplicationWindow {
                     }
                     TextField {
                         Layout.preferredWidth: 100
-                        text: backend.nmea_udp_port
-                        onEditingFinished: backend.nmea_udp_port = text
+                        text: BackEnd.nmea_udp_port
+                        onEditingFinished: BackEnd.nmea_udp_port = text
                         validator: IntValidator {bottom: 1000; top: 65535}
                     }
                 }
@@ -92,7 +88,7 @@ ApplicationWindow {
                     Layout.preferredHeight: 130
                     background: Rectangle { color: "black" }
                     TextArea {
-                        text: backend.nmea_displayed_frames
+                        text: BackEnd.nmea_displayed_frames
                         color: "white"
                         readOnly: true
                     }
@@ -121,14 +117,14 @@ ApplicationWindow {
                 }
                 RowLayout {
                     Label {
-                        text: backend.squid_connection_status
+                        text: BackEnd.squid_connection_status
                         font.pixelSize: 15
                         font.bold: true
                         Layout.fillWidth: true
                     }
                     Button {
                         checkable: true
-                        onClicked: backend.UpdateSquidState(checked, squidXPortTextField.text)
+                        onClicked: BackEnd.UpdateSquidState(checked, squidXPortTextField.text)
                         text: checked ? qsTr("Cancel") : qsTr("Connect")
                         background: Rectangle {
                             radius: 3
@@ -151,8 +147,8 @@ ApplicationWindow {
                     rightMargin: 10
                     verticalCenter: parent.verticalCenter
                 }
-                checked: backend.connect_roadbook
-                onToggled: backend.connect_roadbook = checked
+                checked: BackEnd.connect_roadbook
+                onToggled: BackEnd.connect_roadbook = checked
             }
         }
     }
