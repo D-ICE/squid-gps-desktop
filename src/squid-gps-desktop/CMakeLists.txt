@@ -1,4 +1,4 @@
-find_package(Qt6 REQUIRED Qml Quick Gui Widgets)
+find_package(Qt6 COMPONENTS Qml Quick Gui Widgets SerialPort REQUIRED)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -19,6 +19,8 @@ qt_add_qml_module(squid-gps-desktop
     SOURCES
       backend.cpp
       backend.h
+      usb.cpp
+      usb.h
 )
 
 target_link_libraries(squid-gps-desktop
@@ -26,6 +28,7 @@ target_link_libraries(squid-gps-desktop
     Qt6::Qml
     Qt6::Quick
     Qt6::Widgets
+    Qt6::SerialPort
     sgps
 )
 
@@ -33,6 +36,7 @@ set(squid-gps-desktop_libraries
   Qt6::Qml
   Qt6::Quick
   Qt6::Widgets
+  Qt6::SerialPort
   sgps
 )
 if(WIN32)

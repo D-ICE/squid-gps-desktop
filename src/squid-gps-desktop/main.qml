@@ -58,6 +58,36 @@ ApplicationWindow {
             }
         }
 
+        // USB (WIP)
+        SquidGroupBox {
+            title: qsTr("USB PORT")
+            Layout.fillWidth: true
+            RowLayout {
+                Label {
+                    Layout.fillWidth: true
+                    text: qsTr("Serial Port")
+                    font.pixelSize: 15
+                    font.bold: true
+                }
+
+                ComboBox {
+                    model: USB.availablePorts
+                    onActivated: {
+                        print("Hello: ", currentText)
+                        print("Hello: ", currentValue)
+                        //TODO : transaction!
+                    }
+                }
+
+                Button { //add an Icon
+                    text: "Refresh"
+                    onClicked: {
+                        USB.refresh();
+                    }
+                }
+            }
+        }
+
         // NMEA Frame decoder
         SquidGroupBox {
             title: qsTr("NMEA 0183 UDP Listener")
