@@ -1,12 +1,10 @@
-find_package(Qt6 COMPONENTS Qml Quick Gui Widgets SerialPort REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Qml Quick Gui Widgets Core SerialPort)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-qt_standard_project_setup()
-
-qt_add_resources(resources qml.qrc)
+qt_standard_project_setup(REQUIRES 6.8)
 
 qt_add_executable(squid-gps-desktop
     main.cpp
@@ -14,13 +12,18 @@ qt_add_executable(squid-gps-desktop
 )
 
 qt_add_qml_module(squid-gps-desktop
-    URI backend
+    URI "Backend"
     VERSION 1.0
     SOURCES
       backend.cpp
       backend.h
       usb.cpp
       usb.h
+    QML_FILES
+        Main.qml
+    RESOURCES
+      fonts/refresh.svg
+      fonts/settings.svg
 )
 
 target_link_libraries(squid-gps-desktop
@@ -28,6 +31,7 @@ target_link_libraries(squid-gps-desktop
     Qt6::Qml
     Qt6::Quick
     Qt6::Widgets
+    Qt6::Core
     Qt6::SerialPort
     sgps
 )
@@ -36,6 +40,7 @@ set(squid-gps-desktop_libraries
   Qt6::Qml
   Qt6::Quick
   Qt6::Widgets
+  Qt6::Core
   Qt6::SerialPort
   sgps
 )

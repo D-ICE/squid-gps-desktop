@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls
-import backend
+import QtQuick.Controls.Material
+import Backend
 
 ApplicationWindow {
     title: qsTr("Squid GPS")
@@ -9,6 +9,9 @@ ApplicationWindow {
     width: 640
     height: columnLayout.implicitHeight + 80
     color: "#192633"
+
+    Material.theme: Material.Dark
+    Material.accent: "white"
 
     component SquidGroupBox: GroupBox {
         id: control
@@ -58,11 +61,65 @@ ApplicationWindow {
             }
         }
 
+        SquidGroupBox {
+            title: qsTr("NMEA UDP and USB Listener")
+            Layout.fillWidth: true
+
+            Pane {
+                id: pane
+                property var highlightedColor: Material.accent
+                property var backgroundColor: Material.background
+                property color borderColor: "white"
+
+                property double radius: 4
+                property int inset: 4
+
+                background: Rectangle {
+                    color: pane.backgroundColor
+                    radius: pane.radius
+                }
+                padding: 0
+                contentItem: RowLayout {
+                    id: row
+                    property bool isActive: BackEnd.nmea_udp_active
+                    Button {
+                        text: qsTr("UDP")
+                        topInset: pane.inset
+                        bottomInset: pane.inset
+                        rightInset: pane.inset
+                        leftInset: pane.inset
+                        Material.foreground: !row.isActive ? pane.borderColor : "black"
+                        background: Rectangle {
+                            color: row.isActive ? pane.highlightedColor : "transparent"
+                            radius: pane.radius
+                        }
+                        onClicked: BackEnd.nmea_udp_active = true;
+                    }
+                    Button {
+                        text: qsTr("USB")
+                        topInset: pane.inset
+                        bottomInset: pane.inset
+                        rightInset: pane.inset
+                        leftInset: pane.inset
+                        Material.foreground: row.isActive ? pane.borderColor : "black"
+                        background: Rectangle {
+                            color: !row.isActive ? pane.highlightedColor : "transparent"
+                            radius: pane.radius
+                        }
+                        onClicked: BackEnd.nmea_udp_active = false;
+                    }
+                }
+            }
+        }
+
         // USB (WIP)
         SquidGroupBox {
             title: qsTr("USB PORT")
             Layout.fillWidth: true
             RowLayout {
+                RoundButton {
+                    icon.source: "fonts/settings.svg"
+                }
                 Label {
                     Layout.fillWidth: true
                     text: qsTr("Serial Port")
@@ -74,13 +131,14 @@ ApplicationWindow {
                     model: USB.availablePorts
                     onActivated: {
                         print("Hello: ", currentText)
-                        print("Hello: ", currentValue)
                         //TODO : transaction!
+                        BackEnd.transation(currentValue);
+                        print("Hello: ", Qt.resolvedUrl("fonts/refresh.svg"))
                     }
                 }
 
-                Button { //add an Icon
-                    text: "Refresh"
+                RoundButton {
+                    icon.source: "fonts/refresh.svg"
                     onClicked: {
                         USB.refresh();
                     }

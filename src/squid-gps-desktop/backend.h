@@ -11,6 +11,7 @@
 #include "sgps/nmea_listener.h"
 #include "sgps/squid_gps_server.h"
 #include "sgps/controller.h"
+#include "usb.h"
 
 class BackEnd : public QObject {
   Q_OBJECT
@@ -21,6 +22,7 @@ class BackEnd : public QObject {
   Q_PROPERTY(uint16_t nmea_udp_port READ nmea_udp_port WRITE set_nmea_udp_port NOTIFY nmea_udp_port_changed)
   Q_PROPERTY(QString current_state READ current_state NOTIFY current_state_changed)
   Q_PROPERTY(bool connect_roadbook READ connect_roadbook WRITE set_connect_roadbook NOTIFY connect_roadbook_changed)
+  Q_PROPERTY(bool nmea_udp_active READ nmea_udp_active WRITE set_nmea_udp_active NOTIFY nmea_udp_active_changed)
 
   static const uint16_t kDefaultNMEAPort;
 
@@ -44,12 +46,19 @@ class BackEnd : public QObject {
   void set_nmea_udp_port(uint16_t value);
   void set_connect_roadbook(bool value);
 
+  bool nmea_udp_active() const;
+  void set_nmea_udp_active(bool value);
+
+  Q_INVOKABLE void transation(QString portName);
+  void ConnectUSB(QString portName);
+
  signals:
   void squid_connection_status_changed();
   void nmea_displayed_frames_changed();
   void nmea_udp_port_changed();
   void current_state_changed();
   void connect_roadbook_changed();
+  void nmea_udp_active_changed();
 
  private:
   void Connect(std::error_code& err, uint16_t port);
@@ -85,6 +94,14 @@ class BackEnd : public QObject {
 
   bool m_connect_roadbook;
   std::shared_ptr<std::thread> m_roadbook_connection_thread;
+
+  bool m_nmea_udp_active;
+  MasterThread m_thread;
+
+  QThread* m_nmea_usb_open_thread;
+  QThread* m_nmea_usb_read_thread;
+  QString m_port_name;
+  QSerialPort m_serial;
 };
 
 #endif // SQUID_GPS_DESKTOP_BACKEND_H

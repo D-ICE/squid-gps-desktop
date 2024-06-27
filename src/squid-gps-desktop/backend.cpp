@@ -5,8 +5,10 @@
 #include <QStandardPaths>
 #include <QIODevice>
 #include <QFile>
+#include <QSerialPort>
 
 #include <spdlog/spdlog.h>
+#include <marnav/nmea/nmea.hpp>
 
 const uint16_t BackEnd::kDefaultNMEAPort = 7000;
 
@@ -15,13 +17,15 @@ BackEnd::BackEnd(QObject *parent) :
     m_squid_connection_state(DISCONNECTED),
     m_settings("Squid", "SquidGPSDesktop"),
     m_controller(m_model),
-    m_connect_roadbook(false) {
+    m_connect_roadbook(false),
+    m_nmea_udp_active(false) {
   ConnectNMEA(m_listener_err);
 }
 
 BackEnd::~BackEnd() {
   DisconnectNMEA(m_listener_err);
   Disconnect(m_listener_err);
+  m_thread.terminate();
 }
 
 QString BackEnd::squid_connection_status() const {
@@ -65,27 +69,29 @@ void BackEnd::set_nmea_udp_port_setting(uint16_t value) {
 }
 
 void BackEnd::ConnectNMEA(std::error_code& err) {
-  spdlog::trace("Connecting to NMEA publisher on port {}", nmea_udp_port());
-  m_listener_context = std::make_shared<asio::io_context>();
-  spdlog::trace("Building nmea listener");
-  m_listener = std::make_shared<sgps::NMEAListener>(*m_listener_context);
-  m_listener->Initialize(nmea_udp_port(), err);
-  if (err) {
-    return;
-  }
-  spdlog::trace("Listening on port {}", nmea_udp_port());
-  m_listener->AsyncListen([this](std::unique_ptr<marnav::nmea::sentence> sentence){
-    spdlog::trace("New sentence {}", marnav::nmea::to_string(*sentence));
-    m_controller.OnSentence(*sentence);
+    if (m_nmea_udp_active) {
+        spdlog::trace("Connecting to NMEA publisher on port {}", nmea_udp_port());
+        m_listener_context = std::make_shared<asio::io_context>();
+        spdlog::trace("Building nmea listener");
+        m_listener = std::make_shared<sgps::NMEAListener>(*m_listener_context);
+        m_listener->Initialize(nmea_udp_port(), err);
+        if (err) {
+            return;
+        }
+        spdlog::trace("Listening on port {}", nmea_udp_port());
+        m_listener->AsyncListen([this](std::unique_ptr<marnav::nmea::sentence> sentence){
+            spdlog::trace("New sentence {}", marnav::nmea::to_string(*sentence));
+            m_controller.OnSentence(*sentence);
 
-    // Update the visualized frames
-    PushNMEAFrame(marnav::nmea::to_string(*sentence));
-  });
+            // Update the visualized frames
+            PushNMEAFrame(marnav::nmea::to_string(*sentence));
+        });
 
-  m_listener_context_thread = std::make_shared<std::thread>([this](){
-    m_listener_context->run();
-    spdlog::debug("Closing listener context.");
-  });
+        m_listener_context_thread = std::make_shared<std::thread>([this](){
+            m_listener_context->run();
+            spdlog::debug("Closing listener context.");
+        });
+    }
 }
 
 void BackEnd::PushNMEAFrame(std::string&& value) {
@@ -198,6 +204,27 @@ bool BackEnd::connect_roadbook() const {
   return m_connect_roadbook;
 }
 
+bool BackEnd::nmea_udp_active() const {
+    return m_nmea_udp_active;
+}
+
+void BackEnd::set_nmea_udp_active(bool value) {
+    if (m_nmea_udp_active == value)
+        return;
+    m_nmea_udp_active = value;
+    if (m_nmea_udp_active) {
+        m_nmea_usb_read_thread->terminate();
+        ConnectNMEA(m_listener_err);
+    } else {
+        DisconnectNMEA(m_listener_err);
+        if (m_listener_err) {
+            spdlog::warn("Disconnect error: {}", m_listener_err.message());
+        }
+        m_listener_err.clear();
+    }
+    emit nmea_udp_active_changed();
+}
+
 void BackEnd::set_connect_roadbook(bool value) {
   m_connect_roadbook = value;
   if (!m_connect_roadbook) {
@@ -241,4 +268,52 @@ void BackEnd::set_connect_roadbook(bool value) {
       }
     }
   });
+}
+
+void BackEnd::transation(QString portName) {
+    // m_thread.transaction(portName, 1000);
+    ConnectUSB(portName);
+}
+
+
+void BackEnd::ConnectUSB(QString portName) {
+    m_port_name = portName;
+    qDebug() << "Failed to open port: " ;
+    m_nmea_usb_open_thread = QThread::create([this]{
+        qDebug() << "Failed to open port: -" ;
+        while (!m_nmea_udp_active) {
+            m_serial.setPortName(m_port_name);
+            m_serial.setBaudRate(4800);
+            if (!m_serial.open(QIODevice::ReadOnly)) {
+                spdlog::warn("Failed to open USB port: {}",m_port_name.toStdString());
+                // qDebug() << "Failed to open port: " << m_port_name;
+                return;
+            }
+        }
+    });
+    m_nmea_usb_open_thread->start();
+    m_nmea_usb_read_thread = QThread::create([this]{
+        // to improve!!
+        while (true) {
+            QByteArray responseData = m_serial.readAll();
+            while (m_serial.waitForReadyRead(10)) {
+                responseData += m_serial.readAll();
+            }
+            QString serialString = responseData.mid(responseData.indexOf("$"),responseData.indexOf("\r\n") + 2);
+            if (!serialString.isEmpty()) {
+                qDebug() << "SerialString" <<serialString;
+                std::string sentence_str = serialString.toStdString();
+                try {
+                    auto sentence = marnav::nmea::make_sentence(sentence_str, marnav::nmea::checksum_handling::ignore);
+                    qDebug() << "SerialString2" <<serialString;
+                    m_controller.OnSentence(*sentence);
+                    PushNMEAFrame(marnav::nmea::to_string(*sentence));
+                } catch (std::invalid_argument e) {
+                    spdlog::debug("[sgps] Could not decode sentence {} - {}", sentence_str, e.what());
+                    continue;
+                }
+            }
+        }
+    });
+    m_nmea_usb_read_thread->start();
 }
