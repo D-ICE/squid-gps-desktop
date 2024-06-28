@@ -98,8 +98,8 @@ class BackEnd : public QObject {
   bool m_nmea_udp_active;
   MasterThread m_thread;
 
-  QThread* m_nmea_usb_open_thread;
-  QThread* m_nmea_usb_read_thread;
+  QThread* m_nmea_usb_open_thread { nullptr };
+  QThread* m_nmea_usb_read_thread { nullptr };
   QString m_port_name;
   QSerialPort m_serial;
 };

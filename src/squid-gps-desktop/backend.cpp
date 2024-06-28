@@ -213,7 +213,9 @@ void BackEnd::set_nmea_udp_active(bool value) {
         return;
     m_nmea_udp_active = value;
     if (m_nmea_udp_active) {
-        m_nmea_usb_read_thread->terminate();
+        if (m_nmea_usb_read_thread != nullptr) {
+          m_nmea_usb_read_thread->terminate();
+        }
         ConnectNMEA(m_listener_err);
     } else {
         DisconnectNMEA(m_listener_err);

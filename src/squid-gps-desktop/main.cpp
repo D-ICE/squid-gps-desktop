@@ -15,7 +15,7 @@ void Initialize() {}
 
 int main(int argc, char** argv) {
   Initialize();
-  spdlog::set_level(spdlog::level::info);
+  spdlog::set_level(spdlog::level::trace);
 
   QGuiApplication app(argc, argv);
 
