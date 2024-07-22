@@ -9,6 +9,40 @@ index 5704913..ba09a93 100644
  	if(GIT_REPO_FOUND)
  		git_authors(GIT_AUTHORS AUTHOR_LIST)
  	else()
+diff --git a/examples/bitset_iterate.cpp b/examples/bitset_iterate.cpp
+index 17ca654..0debedf 100644
+--- a/examples/bitset_iterate.cpp
++++ b/examples/bitset_iterate.cpp
+@@ -1,4 +1,5 @@
+ #include <marnav/utils/bitset.hpp>
++#include <cstdint>
+ #include <iostream>
+ 
+ int main(int, char **)
+diff --git a/include/marnav/ais/binary_data.hpp b/include/marnav/ais/binary_data.hpp
+index 4f4f0f7..d4c88fd 100644
+--- a/include/marnav/ais/binary_data.hpp
++++ b/include/marnav/ais/binary_data.hpp
+@@ -2,6 +2,7 @@
+ #define MARNAV_AIS_BINARY_DATA_HPP
+ 
+ #include <marnav/utils/bitset.hpp>
++#include <cstdint>
+ #include <string>
+ 
+ namespace marnav
+diff --git a/include/marnav/nmea/checksum.hpp b/include/marnav/nmea/checksum.hpp
+index 2016879..f75ef07 100644
+--- a/include/marnav/nmea/checksum.hpp
++++ b/include/marnav/nmea/checksum.hpp
+@@ -2,6 +2,7 @@
+ #define MARNAV_NMEA_CHECKSUM_HPP
+ 
+ #include <algorithm>
++#include <cstdint>
+ #include <stdexcept>
+ #include <string>
+ 
 diff --git a/include/marnav/nmea/constants.hpp b/include/marnav/nmea/constants.hpp
 index 23da994..cd1725d 100644
 --- a/include/marnav/nmea/constants.hpp
@@ -26,6 +60,30 @@ index 23da994..cd1725d 100644
  };
  
  /// Side of the vessel.
+diff --git a/include/marnav/nmea/date.hpp b/include/marnav/nmea/date.hpp
+index abb7f99..71266d9 100644
+--- a/include/marnav/nmea/date.hpp
++++ b/include/marnav/nmea/date.hpp
+@@ -1,6 +1,7 @@
+ #ifndef MARNAV_NMEA_DATE_HPP
+ #define MARNAV_NMEA_DATE_HPP
+ 
++#include <cstdint>
+ #include <string>
+ 
+ namespace marnav
+diff --git a/include/marnav/utils/mmsi_country.hpp b/include/marnav/utils/mmsi_country.hpp
+index 085b12d..0758a1f 100644
+--- a/include/marnav/utils/mmsi_country.hpp
++++ b/include/marnav/utils/mmsi_country.hpp
+@@ -1,6 +1,7 @@
+ #ifndef MARNAV_UTILS_MMSI_COUNTRY_HPP
+ #define MARNAV_UTILS_MMSI_COUNTRY_HPP
+ 
++#include <cstdint>
+ #include <string>
+ 
+ namespace marnav
 diff --git a/src/marnav/nmea/angle.cpp b/src/marnav/nmea/angle.cpp
 index feae413..a1550c7 100644
 --- a/src/marnav/nmea/angle.cpp
