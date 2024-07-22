@@ -20,7 +20,7 @@ qt_add_qml_module(squid-gps-desktop
       usb.cpp
       usb.h
     QML_FILES
-        Main.qml
+      Main.qml
     RESOURCES
       fonts/refresh.svg
       fonts/settings.svg
