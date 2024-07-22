@@ -8,7 +8,6 @@ qt_standard_project_setup(REQUIRES 6.8)
 
 qt_add_executable(squid-gps-desktop
     main.cpp
-    ${resources}
 )
 
 qt_add_qml_module(squid-gps-desktop
