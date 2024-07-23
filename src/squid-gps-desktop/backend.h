@@ -11,6 +11,7 @@
 #include "sgps/nmea_listener.h"
 #include "sgps/squid_gps_server.h"
 #include "sgps/controller.h"
+#include "serial_settings.h"
 #include "usb.h"
 
 class BackEnd : public QObject {
@@ -23,6 +24,7 @@ class BackEnd : public QObject {
   Q_PROPERTY(QString current_state READ current_state NOTIFY current_state_changed)
   Q_PROPERTY(bool connect_roadbook READ connect_roadbook WRITE set_connect_roadbook NOTIFY connect_roadbook_changed)
   Q_PROPERTY(bool nmea_udp_active READ nmea_udp_active WRITE set_nmea_udp_active NOTIFY nmea_udp_active_changed)
+  Q_PROPERTY(SerialSettings* serial_settings READ serial_settings CONSTANT)
 
   static const uint16_t kDefaultNMEAPort;
 
@@ -48,6 +50,8 @@ class BackEnd : public QObject {
 
   bool nmea_udp_active() const;
   void set_nmea_udp_active(bool value);
+
+  SerialSettings* serial_settings();
 
   Q_INVOKABLE void transation(QString portName);
   void ConnectUSB(QString portName);
@@ -102,6 +106,7 @@ class BackEnd : public QObject {
   QThread* m_nmea_usb_read_thread { nullptr };
   QString m_port_name;
   QSerialPort m_serial;
+  SerialSettings m_serial_settings;
 };
 
 #endif // SQUID_GPS_DESKTOP_BACKEND_H

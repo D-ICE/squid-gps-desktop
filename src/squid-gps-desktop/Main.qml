@@ -4,14 +4,19 @@ import QtQuick.Controls.Material
 import Backend
 
 ApplicationWindow {
+    id: appWindow
     title: qsTr("Squid GPS")
     visible: true
     width: 640
     height: columnLayout.implicitHeight + 80
-    color: "#192633"
 
     Material.theme: Material.Dark
-    Material.accent: "white"
+    Material.accent: Material.Teal
+    Material.background: "#192633"
+
+    SerialSettingsPopup {
+        id: serialSettingsPopup
+    }
 
     component SquidGroupBox: GroupBox {
         id: control
@@ -32,13 +37,9 @@ ApplicationWindow {
             font.pixelSize: 15
             background: Rectangle {
                 radius: 5
+                bottomLeftRadius: 0
+                bottomRightRadius: 0
                 color: "#434E5A"
-                Rectangle { // hide radius at bottom
-                    visible: control.contentHeight
-                    anchors.fill: parent
-                    anchors.topMargin: parent.radius
-                    color: parent.color
-                }
             }
         }
     }
@@ -119,6 +120,7 @@ ApplicationWindow {
             RowLayout {
                 RoundButton {
                     icon.source: "fonts/settings.svg"
+                    onClicked: { serialSettingsPopup.open(); }
                 }
                 Label {
                     Layout.fillWidth: true

@@ -16,10 +16,13 @@ qt_add_qml_module(squid-gps-desktop
     SOURCES
       backend.cpp
       backend.h
+      serial_settings.cpp
+      serial_settings.h
       usb.cpp
       usb.h
     QML_FILES
       Main.qml
+      SerialSettingsPopup.qml
     RESOURCES
       fonts/refresh.svg
       fonts/settings.svg

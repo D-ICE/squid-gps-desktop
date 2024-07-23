@@ -227,6 +227,10 @@ void BackEnd::set_nmea_udp_active(bool value) {
     emit nmea_udp_active_changed();
 }
 
+SerialSettings* BackEnd::serial_settings() {
+  return &m_serial_settings;
+}
+
 void BackEnd::set_connect_roadbook(bool value) {
   m_connect_roadbook = value;
   if (!m_connect_roadbook) {
