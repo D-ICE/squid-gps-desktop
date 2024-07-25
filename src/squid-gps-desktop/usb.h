@@ -5,7 +5,6 @@
 #include <QtQml/qqml.h>
 
 #include <QSerialPort>
-#include <QSerialPortInfo>
 #include <QThread>
 #include <QMutex>
 #include <QWaitCondition>
@@ -37,27 +36,6 @@ private:
     QMutex m_mutex;
     QWaitCondition m_cond;
     bool m_quit = false;
-};
-
-class USB: public QObject {
-    Q_OBJECT
-    QML_ELEMENT
-    QML_SINGLETON
-
-    Q_PROPERTY(QStringList availablePorts READ availablePorts NOTIFY availablePortsChanged)
-
-public:
-    USB(QObject *parent = nullptr);
-
-    QStringList availablePorts();
-    Q_INVOKABLE void refresh();
-
-signals:
-    void availablePortsChanged();
-
-private:
-    std::unique_ptr<QSerialPort> m_serial_port;
-    QStringList m_availablePorts;
 };
 
 #endif // SQUID_GPS_DESKTOP_USB_H

@@ -14,6 +14,9 @@ ApplicationWindow {
     Material.accent: Material.Teal
     Material.background: "#192633"
 
+    readonly property InputsManager inputsManager: BackEnd.inputs_manager
+    readonly property SerialReader serialReader: inputsManager.serial_reader
+
     SerialSettingsPopup {
         id: serialSettingsPopup
     }
@@ -44,6 +47,30 @@ ApplicationWindow {
         }
     }
 
+    component ErrorLabel: Pane {
+        id: errorLabelComponent
+        padding: 8
+        Material.background: Material.Red
+        visible: text !== ""
+        property alias text: label.text
+        signal clear()
+        contentItem: RowLayout {
+            Label {
+                id: label
+                Layout.alignment: Qt.AlignVCenter
+                Layout.fillWidth: true
+                padding: 4
+                wrapMode: Label.Wrap
+            }
+            RoundButton {
+                Layout.alignment: Qt.AlignVCenter
+                icon.source: "fonts/trash.svg"
+                flat: true
+                onClicked: { errorLabelComponent.clear(); }
+            }
+        }
+    }
+
     ColumnLayout {
         id: columnLayout
 
@@ -63,89 +90,145 @@ ApplicationWindow {
         }
 
         SquidGroupBox {
-            title: qsTr("NMEA UDP and USB Listener")
+            title: qsTr("NMEA Listener")
             Layout.fillWidth: true
 
-            Pane {
-                id: pane
-                property var highlightedColor: Material.accent
-                property var backgroundColor: Material.background
-                property color borderColor: "white"
-
-                property double radius: 4
-                property int inset: 4
-
-                background: Rectangle {
-                    color: pane.backgroundColor
-                    radius: pane.radius
+            contentItem: Page {
+                padding: 8
+                header: TabBar {
+                    id: bar
+                    TabButton { text: qsTr("UDP") }
+                    TabButton { text: qsTr("Serial") }
                 }
-                padding: 0
-                contentItem: RowLayout {
-                    id: row
-                    property bool isActive: BackEnd.nmea_udp_active
-                    Button {
-                        text: qsTr("UDP")
-                        topInset: pane.inset
-                        bottomInset: pane.inset
-                        rightInset: pane.inset
-                        leftInset: pane.inset
-                        Material.foreground: !row.isActive ? pane.borderColor : "black"
-                        background: Rectangle {
-                            color: row.isActive ? pane.highlightedColor : "transparent"
-                            radius: pane.radius
+                StackLayout {
+                    width: parent.width
+                    currentIndex: bar.currentIndex
+                    ColumnLayout { //UDP item
+                        Layout.fillWidth: true
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Label {
+                                Layout.alignment: Qt.AlignVCenter
+                                Layout.fillWidth: true
+                                text: qsTr("UDP port") + " :"
+                                elide: Label.ElideRight
+                                wrapMode: Label.Wrap
+                                maximumLineCount: 2
+                            }
+                            TextField {
+                                Layout.alignment: Qt.AlignVCenter
+                                Layout.fillWidth: true
+                                text: BackEnd.nmea_udp_port
+                                onEditingFinished: { BackEnd.nmea_udp_port = text; }
+                                validator: IntValidator { bottom: 1000; top: 65535 }
+                            }
                         }
-                        onClicked: BackEnd.nmea_udp_active = true;
+                        Button {
+                            Layout.alignment: Qt.AlignHCenter
+                            Layout.fillWidth: true
+                            Layout.maximumWidth: 120
+                            highlighted: true
+                            text: qsTr("Listen")
+                            onClicked: { appWindow.inputsManager.listenUDP(); }
+                        }
+                        ErrorLabel {
+                            Layout.fillWidth: true
+                            text: "" //TODO
+                            onClear: { /*TODO*/ }
+                        }
                     }
-                    Button {
-                        text: qsTr("USB")
-                        topInset: pane.inset
-                        bottomInset: pane.inset
-                        rightInset: pane.inset
-                        leftInset: pane.inset
-                        Material.foreground: row.isActive ? pane.borderColor : "black"
-                        background: Rectangle {
-                            color: !row.isActive ? pane.highlightedColor : "transparent"
-                            radius: pane.radius
+                    ColumnLayout { //Serial item
+                        Layout.fillWidth: true
+                        RowLayout {
+                            Layout.fillWidth: true
+                            RoundButton {
+                                Layout.alignment: Qt.AlignVCenter
+                                icon.source: "fonts/settings.svg"
+                                onClicked: { serialSettingsPopup.open(); }
+                            }
+                            Label {
+                                Layout.alignment: Qt.AlignVCenter
+                                Layout.fillWidth: true
+                                text: qsTr("Serial port") + " :"
+                                elide: Label.ElideRight
+                                wrapMode: Label.Wrap
+                                maximumLineCount: 2
+                            }
+                            ComboBox {
+                                Layout.alignment: Qt.AlignVCenter
+                                Layout.fillWidth: true
+                                model: appWindow.serialReader.portnames_list
+                                currentIndex: -1 //prevent from automatically selecting the 1st element when list is created
+                                onActivated: { appWindow.serialReader.setSelectedPortname(currentValue); }
+                            }
+                            RoundButton {
+                                Layout.alignment: Qt.AlignVCenter
+                                icon.source: "fonts/refresh.svg"
+                                onClicked: { appWindow.serialReader.refreshPortnamesList(); }
+                            }
                         }
-                        onClicked: BackEnd.nmea_udp_active = false;
+                        Button {
+                            Layout.alignment: Qt.AlignHCenter
+                            Layout.fillWidth: true
+                            Layout.maximumWidth: 120
+                            highlighted: true
+                            text: qsTr("Read")
+                            onClicked: { appWindow.inputsManager.readSerial(); }
+                        }
+                        ErrorLabel {
+                            Layout.fillWidth: true
+                            text: appWindow.serialReader.error_message
+                            onClear: { appWindow.serialReader.error_message = "" }
+                        }
                     }
                 }
             }
-        }
 
-        // USB (WIP)
-        SquidGroupBox {
-            title: qsTr("USB PORT")
-            Layout.fillWidth: true
-            RowLayout {
-                RoundButton {
-                    icon.source: "fonts/settings.svg"
-                    onClicked: { serialSettingsPopup.open(); }
-                }
-                Label {
-                    Layout.fillWidth: true
-                    text: qsTr("Serial Port")
-                    font.pixelSize: 15
-                    font.bold: true
-                }
+            // Pane {
+            //     id: pane
+            //     property var highlightedColor: Material.accent
+            //     property var backgroundColor: Material.background
+            //     property color borderColor: "white"
 
-                ComboBox {
-                    model: USB.availablePorts
-                    onActivated: {
-                        print("Hello: ", currentText)
-                        //TODO : transaction!
-                        BackEnd.transation(currentValue);
-                        print("Hello: ", Qt.resolvedUrl("fonts/refresh.svg"))
-                    }
-                }
+            //     property double radius: 4
+            //     property int inset: 4
 
-                RoundButton {
-                    icon.source: "fonts/refresh.svg"
-                    onClicked: {
-                        USB.refresh();
-                    }
-                }
-            }
+            //     background: Rectangle {
+            //         color: pane.backgroundColor
+            //         radius: pane.radius
+            //     }
+            //     padding: 0
+            //     contentItem: RowLayout {
+            //         id: row
+            //         property bool isActive: BackEnd.nmea_udp_active
+            //         Button {
+            //             text: qsTr("UDP")
+            //             topInset: pane.inset
+            //             bottomInset: pane.inset
+            //             rightInset: pane.inset
+            //             leftInset: pane.inset
+            //             Material.foreground: !row.isActive ? pane.borderColor : "black"
+            //             background: Rectangle {
+            //                 color: row.isActive ? pane.highlightedColor : "transparent"
+            //                 radius: pane.radius
+            //             }
+            //             onClicked: BackEnd.nmea_udp_active = true;
+            //         }
+            //         Button {
+            //             text: qsTr("USB")
+            //             topInset: pane.inset
+            //             bottomInset: pane.inset
+            //             rightInset: pane.inset
+            //             leftInset: pane.inset
+            //             Material.foreground: row.isActive ? pane.borderColor : "black"
+            //             background: Rectangle {
+            //                 color: !row.isActive ? pane.highlightedColor : "transparent"
+            //                 radius: pane.radius
+            //             }
+            //             onClicked: BackEnd.nmea_udp_active = false;
+            //         }
+            //     }
+            // }
         }
 
         // NMEA Frame decoder
@@ -156,20 +239,7 @@ ApplicationWindow {
             // Parameters
             contentItem: ColumnLayout {
                 spacing: 20
-                RowLayout {
-                    Label {
-                        Layout.fillWidth: true
-                        text: qsTr("Port")
-                        font.pixelSize: 15
-                        font.bold: true
-                    }
-                    TextField {
-                        Layout.preferredWidth: 100
-                        text: BackEnd.nmea_udp_port
-                        onEditingFinished: BackEnd.nmea_udp_port = text
-                        validator: IntValidator {bottom: 1000; top: 65535}
-                    }
-                }
+
 
                 // Last received frames
 

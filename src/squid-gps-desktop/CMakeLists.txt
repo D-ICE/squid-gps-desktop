@@ -16,8 +16,14 @@ qt_add_qml_module(squid-gps-desktop
     SOURCES
       backend.cpp
       backend.h
+      inputs_manager.cpp
+      inputs_manager.h
+      serial_reader.cpp
+      serial_reader.h
       serial_settings.cpp
       serial_settings.h
+      udp_listener.cpp
+      udp_listener.h
       usb.cpp
       usb.h
     QML_FILES
@@ -26,6 +32,7 @@ qt_add_qml_module(squid-gps-desktop
     RESOURCES
       fonts/refresh.svg
       fonts/settings.svg
+      fonts/trash.svg
 )
 
 target_link_libraries(squid-gps-desktop
