@@ -3,6 +3,8 @@
 #include <QIcon>
 #include <spdlog/spdlog.h>
 
+#include "backend.h"
+
 // Asio needs a call to CoInitialize on windows
 #ifdef CO_INITIALIZE
 #include <windows.h>
@@ -23,6 +25,7 @@ int main(int argc, char** argv) {
   QIcon::setThemeName(".");
 
   QQmlApplicationEngine engine;
+
   QObject::connect(
       &engine,
       &QQmlApplicationEngine::objectCreationFailed,
