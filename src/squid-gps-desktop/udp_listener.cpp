@@ -6,27 +6,9 @@ const uint16_t UdpListener::c_default_port = 7000;
 const QString UdpListener::c_port_setting_key = "nmea_udp_port";
 
 UdpListener::UdpListener(QSettings& settings, QObject* parent):
- QObject(parent),
+ InputReceiver(parent),
  m_settings_ref(settings) {
 
-}
-
-UdpListener::~UdpListener() {
-  Stop();
-}
-
-QString UdpListener::error_message() const {
-  return m_error_message;
-}
-
-void UdpListener::set_error_message(const QString& message) {
-  if (!message.isEmpty()) {
-    spdlog::error("[UdpListener] {}", message.toStdString());
-  }
-  if (m_error_message != message) {
-    m_error_message = message;
-    emit errorMessageChanged();
-  }
 }
 
 quint16 UdpListener::port() const {

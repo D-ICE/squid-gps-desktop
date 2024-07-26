@@ -16,6 +16,8 @@ qt_add_qml_module(squid-gps-desktop
     SOURCES
       backend.cpp
       backend.h
+      input_receiver.cpp
+      input_receiver.h
       inputs_manager.cpp
       inputs_manager.h
       serial_reader.cpp

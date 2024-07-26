@@ -18,6 +18,7 @@ class InputsManager : public QObject {
 
  public:
   InputsManager(QSettings& settings, QObject* parent = Q_NULLPTR);
+  virtual ~InputsManager() override;
 
   SerialReader* serial_reader();
   UdpListener* udp_listener();

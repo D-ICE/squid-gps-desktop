@@ -8,6 +8,11 @@ InputsManager::InputsManager(QSettings& settings, QObject* parent):
 
 }
 
+InputsManager::~InputsManager() {
+  m_serial_reader.Stop();
+  m_udp_listener.Stop();
+}
+
 SerialReader* InputsManager::serial_reader() {
   return &m_serial_reader;
 }

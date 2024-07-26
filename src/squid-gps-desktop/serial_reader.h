@@ -7,22 +7,18 @@
 #include <QString>
 #include <QStringList>
 
+#include "input_receiver.h"
 #include "serial_settings.h"
 
-class SerialReader : public QObject {
+class SerialReader : public InputReceiver {
   Q_OBJECT
   QML_ELEMENT
 
-  Q_PROPERTY(QString error_message READ error_message WRITE set_error_message NOTIFY errorMessageChanged)
   Q_PROPERTY(SerialSettings* settings READ settings CONSTANT)
   Q_PROPERTY(QStringList portnames_list READ portnames_list NOTIFY portnamesListChanged STORED false)
 
  public:
-  using QObject::QObject;
-  virtual ~SerialReader() override;
-
-  QString error_message() const;
-  void set_error_message(const QString& message);
+  using InputReceiver::InputReceiver;
 
   SerialSettings* settings();
   QStringList portnames_list() const;
@@ -30,15 +26,13 @@ class SerialReader : public QObject {
   Q_INVOKABLE void refreshPortnamesList();
   Q_INVOKABLE void setSelectedPortname(const QString& name);
 
-  void Start();
-  void Stop();
+  virtual void Start() override;
+  virtual void Stop() override;
 
  signals:
-  void errorMessageChanged();
   void portnamesListChanged();
 
  private:
-  QString m_error_message { "" };
   SerialSettings m_settings;
   QString m_selected_portname { "" };
   QSerialPort m_serial_port;

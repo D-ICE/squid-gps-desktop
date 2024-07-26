@@ -4,24 +4,6 @@
 
 #include <QSerialPortInfo>
 
-SerialReader::~SerialReader() {
-  Stop();
-}
-
-QString SerialReader::error_message() const {
-  return m_error_message;
-}
-
-void SerialReader::set_error_message(const QString& message) {
-  if (!message.isEmpty()) {
-    spdlog::error("[SerialReader] {}", message.toStdString());
-  }
-  if (m_error_message != message) {
-    m_error_message = message;
-    emit errorMessageChanged();
-  }
-}
-
 SerialSettings* SerialReader::settings() {
   return &m_settings;
 }
