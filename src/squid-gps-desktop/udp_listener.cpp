@@ -5,12 +5,6 @@
 const uint16_t UdpListener::c_default_port = 7000;
 const QString UdpListener::c_port_setting_key = "nmea_udp_port";
 
-UdpListener::UdpListener(QSettings& settings, QObject* parent):
- InputReceiver(parent),
- m_settings_ref(settings) {
-
-}
-
 quint16 UdpListener::port() const {
   return m_settings_ref.value(c_port_setting_key, c_default_port).toUInt();
 }

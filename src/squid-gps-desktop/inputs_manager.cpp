@@ -4,6 +4,7 @@
 
 InputsManager::InputsManager(QSettings& settings, QObject* parent):
  QObject(parent),
+ m_serial_reader(settings, this),
  m_udp_listener(settings, this) {
 
 }

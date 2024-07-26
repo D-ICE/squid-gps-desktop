@@ -2,6 +2,9 @@
 
 #include <spdlog/spdlog.h>
 
+InputReceiver::InputReceiver(QSettings& settings, QObject* parent):
+ QObject(parent), m_settings_ref(settings) { }
+
 QString InputReceiver::error_message() const {
     return m_error_message;
 }

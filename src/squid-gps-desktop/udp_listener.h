@@ -6,7 +6,6 @@
 
 #include <QQmlEngine>
 #include <QObject>
-#include <QSettings>
 #include <QString>
 #include <QtGlobal>
 
@@ -21,7 +20,7 @@ class UdpListener : public InputReceiver {
   Q_PROPERTY(quint16 port READ port WRITE set_port NOTIFY portChanged STORED false)
 
  public:
-  UdpListener(QSettings& settings, QObject* parent = Q_NULLPTR);
+  using InputReceiver::InputReceiver;
 
   quint16 port() const;
   void set_port(const quint16& port);
@@ -36,7 +35,6 @@ class UdpListener : public InputReceiver {
  private:
   const static quint16 c_default_port;
   const static QString c_port_setting_key;
-  QSettings& m_settings_ref;
 
   std::shared_ptr<asio::io_context> m_listener_context;
   std::shared_ptr<sgps::NMEAListener> m_listener;

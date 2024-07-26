@@ -13,12 +13,15 @@
 class SerialReader : public InputReceiver {
   Q_OBJECT
   QML_ELEMENT
+  QML_UNCREATABLE("Has C++ arguments in constructor")
 
   Q_PROPERTY(SerialSettings* settings READ settings CONSTANT)
   Q_PROPERTY(QStringList portnames_list READ portnames_list NOTIFY portnamesListChanged STORED false)
 
  public:
-  using InputReceiver::InputReceiver;
+  SerialReader(QSettings& settings, QObject* parent = Q_NULLPTR);
+
+  void LoadConfiguration();
 
   SerialSettings* settings();
   QStringList portnames_list() const;
@@ -33,7 +36,13 @@ class SerialReader : public InputReceiver {
   void portnamesListChanged();
 
  private:
-  SerialSettings m_settings;
+  const static QString c_baudrate_setting_key;
+  const static QString c_data_bits_setting_key;
+  const static QString c_stop_bits_setting_key;
+  const static QString c_parity_setting_key;
+  const static QString c_flow_control_setting_key;
+
+  SerialSettings m_serial_settings;
   QString m_selected_portname { "" };
   QSerialPort m_serial_port;
 };
