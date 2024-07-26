@@ -26,8 +26,6 @@ qt_add_qml_module(squid-gps-desktop
       serial_settings.h
       udp_listener.cpp
       udp_listener.h
-      usb.cpp
-      usb.h
     QML_FILES
       Main.qml
       SerialSettingsPopup.qml

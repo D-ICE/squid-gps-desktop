@@ -35,6 +35,10 @@ class SerialReader : public InputReceiver {
  signals:
   void portnamesListChanged();
 
+ private slots:
+  void onError(QSerialPort::SerialPortError err);
+  void onRead();
+
  private:
   const static QString c_baudrate_setting_key;
   const static QString c_data_bits_setting_key;

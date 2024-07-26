@@ -3,7 +3,6 @@
 #include <QStandardPaths>
 #include <QIODevice>
 #include <QFile>
-#include <QSerialPort>
 
 #include <spdlog/spdlog.h>
 #include <marnav/nmea/nmea.hpp>
@@ -15,12 +14,12 @@ BackEnd::BackEnd(QObject *parent) :
  m_controller(m_model),
  m_connect_roadbook(false),
  m_inputs_manager(m_settings, this) {
-  connect(m_inputs_manager.udp_listener(), &UdpListener::sentenceReceived, this, &BackEnd::onSentence);
+  connect(m_inputs_manager.serial_reader(), &InputReceiver::sentenceReceived, this, &BackEnd::onSentence);
+  connect(m_inputs_manager.udp_listener(), &InputReceiver::sentenceReceived, this, &BackEnd::onSentence);
 }
 
 BackEnd::~BackEnd() {
-  Disconnect(m_listener_err);
-  m_thread.terminate();
+  Disconnect();
 }
 
 QString BackEnd::squid_connection_status() const {
@@ -34,13 +33,14 @@ QString BackEnd::squid_connection_status() const {
   }
   return "INVALID";
 }
+
 QString BackEnd::nmea_displayed_frames() const {
   return {m_displayed_nmea_frames.c_str()};
 }
 
 void BackEnd::PushNMEAFrame(std::string&& value) {
   m_received_nmea_frames.emplace_front(value);
-  while (m_received_nmea_frames.size() > 10) {
+  while (m_received_nmea_frames.size() > 15) {
     m_received_nmea_frames.pop_back();
   }
   m_displayed_nmea_frames.clear();
@@ -59,14 +59,14 @@ void BackEnd::updateSquidState(bool checked, uint16_t port) {
     Connect(err, port);  // TODO handle err
   } else {
     m_squid_connection_state = DISCONNECTED;
-    Disconnect(err);
+    Disconnect();
   }
   emit squid_connection_status_changed();
 }
 
 void BackEnd::onSentence(QString s) {
   try {
-    auto sentence = marnav::nmea::make_sentence(s.toStdString());
+    auto sentence = marnav::nmea::make_sentence(s.toStdString(), marnav::nmea::checksum_handling::ignore);
     if (sentence) {
       m_controller.OnSentence(*sentence);
       // Update the visualized frames
@@ -117,10 +117,9 @@ void BackEnd::Connect(std::error_code& err, uint16_t port) {
       spdlog::debug("Waking up from connection request loop");
     }
   });
-
 }
 
-void BackEnd::Disconnect(std::error_code& err) {
+void BackEnd::Disconnect() {
   spdlog::trace("Disconnecting");
   if (!m_squid_context) {
     return;
@@ -190,54 +189,6 @@ void BackEnd::set_connect_roadbook(bool value) {
       }
     }
   });
-}
-
-void BackEnd::transation(QString portName) {
-    // m_thread.transaction(portName, 1000);
-    ConnectUSB(portName);
-}
-
-
-void BackEnd::ConnectUSB(QString portName) {
-    m_port_name = portName;
-    qDebug() << "Failed to open port: " ;
-    m_nmea_usb_open_thread = QThread::create([this]{
-        // qDebug() << "Failed to open port: -" ;
-        // while (!m_nmea_udp_active) {
-        //     m_serial.setPortName(m_port_name);
-        //     m_serial.setBaudRate(4800);
-        //     if (!m_serial.open(QIODevice::ReadOnly)) {
-        //         spdlog::warn("Failed to open USB port: {}",m_port_name.toStdString());
-        //         // qDebug() << "Failed to open port: " << m_port_name;
-        //         return;
-        //     }
-        // }
-    });
-    m_nmea_usb_open_thread->start();
-    m_nmea_usb_read_thread = QThread::create([this]{
-        // to improve!!
-        while (true) {
-            QByteArray responseData = m_serial.readAll();
-            while (m_serial.waitForReadyRead(10)) {
-                responseData += m_serial.readAll();
-            }
-            QString serialString = responseData.mid(responseData.indexOf("$"),responseData.indexOf("\r\n") + 2);
-            if (!serialString.isEmpty()) {
-                qDebug() << "SerialString" <<serialString;
-                std::string sentence_str = serialString.toStdString();
-                try {
-                    auto sentence = marnav::nmea::make_sentence(sentence_str, marnav::nmea::checksum_handling::ignore);
-                    qDebug() << "SerialString2" <<serialString;
-                    m_controller.OnSentence(*sentence);
-                    PushNMEAFrame(marnav::nmea::to_string(*sentence));
-                } catch (std::invalid_argument e) {
-                    spdlog::debug("[sgps] Could not decode sentence {} - {}", sentence_str, e.what());
-                    continue;
-                }
-            }
-        }
-    });
-    m_nmea_usb_read_thread->start();
 }
 
 InputsManager* BackEnd::inputs_manager() {

@@ -22,6 +22,7 @@ class InputReceiver : public QObject {
 
  signals:
   void errorMessageChanged();
+  void sentenceReceived(QString s);
 
  protected:
   QSettings& m_settings_ref;

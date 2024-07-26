@@ -13,12 +13,12 @@
 #include "sgps/squid_gps_server.h"
 #include "sgps/controller.h"
 #include "inputs_manager.h"
-#include "usb.h"
 
 class BackEnd : public QObject {
   Q_OBJECT
   QML_SINGLETON
   QML_ELEMENT
+
   Q_PROPERTY(QString squid_connection_status READ squid_connection_status NOTIFY squid_connection_status_changed)
   Q_PROPERTY(QString nmea_displayed_frames READ nmea_displayed_frames NOTIFY nmea_displayed_frames_changed)
   Q_PROPERTY(QString current_state READ current_state NOTIFY current_state_changed)
@@ -43,9 +43,6 @@ class BackEnd : public QObject {
   Q_INVOKABLE void updateSquidState(bool checked, uint16_t port);
   void set_connect_roadbook(bool value);
 
-  Q_INVOKABLE void transation(QString portName);
-  void ConnectUSB(QString portName);
-
   InputsManager* inputs_manager();
 
  signals:
@@ -59,7 +56,7 @@ class BackEnd : public QObject {
 
  private:
   void Connect(std::error_code& err, uint16_t port);
-  void Disconnect(std::error_code& err);
+  void Disconnect();
 
   void PushNMEAFrame(std::string&& value);
 
@@ -71,7 +68,6 @@ class BackEnd : public QObject {
 
   std::list<std::string> m_received_nmea_frames;
   std::string m_displayed_nmea_frames;
-  std::error_code m_listener_err;
 
   State m_squid_connection_state;
   std::shared_ptr<asio::io_context> m_squid_context;
@@ -83,13 +79,6 @@ class BackEnd : public QObject {
 
   bool m_connect_roadbook;
   std::shared_ptr<std::thread> m_roadbook_connection_thread;
-
-  MasterThread m_thread;
-
-  QThread* m_nmea_usb_open_thread { nullptr };
-  QThread* m_nmea_usb_read_thread { nullptr };
-  QString m_port_name;
-  QSerialPort m_serial;
 
   InputsManager m_inputs_manager;
 };

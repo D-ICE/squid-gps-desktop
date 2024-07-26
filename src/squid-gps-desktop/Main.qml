@@ -117,6 +117,8 @@ ApplicationWindow {
                             currentIndex: bar.currentIndex
                             ColumnLayout { //UDP item
                                 Layout.fillWidth: true
+                                readonly property bool isCurrentItem: StackLayout.isCurrentItem
+                                onIsCurrentItemChanged: { udpErrorLabel.clear(); }
                                 RowLayout {
                                     Layout.fillWidth: true
                                     Label {
@@ -151,9 +153,10 @@ ApplicationWindow {
                                     onClicked: { appWindow.inputsManager.listenUDP(); }
                                 }
                                 ErrorLabel {
+                                    id: udpErrorLabel
                                     Layout.fillWidth: true
-                                    text: "" //TODO
-                                    onClear: { /*TODO*/ }
+                                    text: appWindow.udpListener.error_message
+                                    onClear: { appWindow.udpListener.error_message = ""; }
                                 }
                             }
                             ColumnLayout { //Serial item
@@ -181,7 +184,7 @@ ApplicationWindow {
                                         Layout.fillWidth: true
                                         model: appWindow.serialReader.portnames_list
                                         currentIndex: -1 //prevent from automatically selecting the 1st element when list is created
-                                        onActivated: { appWindow.serialReader.setSelectedPortname(currentValue); }
+                                        onCurrentValueChanged: { appWindow.serialReader.setSelectedPortname(currentValue); }
                                     }
                                     RoundButton {
                                         Layout.alignment: Qt.AlignVCenter
@@ -202,7 +205,7 @@ ApplicationWindow {
                                     id: serialErrorLabel
                                     Layout.fillWidth: true
                                     text: appWindow.serialReader.error_message
-                                    onClear: { appWindow.serialReader.error_message = "" }
+                                    onClear: { appWindow.serialReader.error_message = ""; }
                                 }
                             }
                         }
@@ -249,7 +252,7 @@ ApplicationWindow {
                         }
                         Button {
                             checkable: true
-                            onClicked: BackEnd.updateSquidState(checked, squidXPortTextField.text)
+                            onClicked: { BackEnd.updateSquidState(checked, squidXPortTextField.text); }
                             text: checked ? qsTr("Cancel") : qsTr("Connect")
                             background: Rectangle {
                                 radius: 3
@@ -273,7 +276,7 @@ ApplicationWindow {
                         verticalCenter: parent.verticalCenter
                     }
                     checked: BackEnd.connect_roadbook
-                    onToggled: BackEnd.connect_roadbook = checked
+                    onToggled: { BackEnd.connect_roadbook = checked; }
                 }
             }
         }

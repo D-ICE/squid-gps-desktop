@@ -30,7 +30,6 @@ class UdpListener : public InputReceiver {
 
  signals:
   void portChanged();
-  void sentenceReceived(QString s);
 
  private:
   const static quint16 c_default_port;

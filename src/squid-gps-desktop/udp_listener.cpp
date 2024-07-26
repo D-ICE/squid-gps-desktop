@@ -19,6 +19,8 @@ void UdpListener::set_port(const quint16& port) {
 void UdpListener::Start() {
   Stop(); //close previously UDP communication
 
+  set_error_message("");
+
   quint16 port = this->port();
   spdlog::trace("[UdpListener] Connecting to NMEA publisher on port {}.", port);
   m_listener_context = std::make_shared<asio::io_context>();
