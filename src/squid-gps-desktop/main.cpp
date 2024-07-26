@@ -1,6 +1,9 @@
 #include <QApplication>
 #include <QQmlApplicationEngine>
+#include <QIcon>
 #include <spdlog/spdlog.h>
+
+#include "backend.h"
 
 // Asio needs a call to CoInitialize on windows
 #ifdef CO_INITIALIZE
@@ -14,9 +17,23 @@ void Initialize() {}
 
 int main(int argc, char** argv) {
   Initialize();
-  spdlog::set_level(spdlog::level::info);
-  QApplication app(argc, argv);
+  spdlog::set_level(spdlog::level::trace);
+
+  QGuiApplication app(argc, argv);
+
+  QIcon::setFallbackSearchPaths({"qrc:/qt/qml/Backend/fonts"});
+  QIcon::setThemeName(".");
+
   QQmlApplicationEngine engine;
-  engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
+
+  QObject::connect(
+      &engine,
+      &QQmlApplicationEngine::objectCreationFailed,
+      &app,
+      []() { QCoreApplication::exit(-1); },
+      Qt::QueuedConnection);
+
+  engine.loadFromModule("Backend", "Main");
+
   return app.exec();
 }

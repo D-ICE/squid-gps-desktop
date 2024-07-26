@@ -1,4 +1,10 @@
 build
 .idea
 .vscode
-cmake-build-debug
+
+# cmake generated files
+.cmake/*
+*.txt.user*
+Makefile*
+cmake-*
+cmake.*
