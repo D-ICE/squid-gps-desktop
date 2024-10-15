@@ -1,3 +1,48 @@
+diff --git a/cmake/Documentation.cmake b/cmake/Documentation.cmake
+index 5704913..ba09a93 100644
+--- a/cmake/Documentation.cmake
++++ b/cmake/Documentation.cmake
+@@ -1,5 +1,5 @@
+ find_package(Doxygen)
+-if(DOXYGEN_FOUND)
++if(DOXYGEN_FOUND AND TARGET tags)
+ 	if(GIT_REPO_FOUND)
+ 		git_authors(GIT_AUTHORS AUTHOR_LIST)
+ 	else()
+diff --git a/examples/bitset_iterate.cpp b/examples/bitset_iterate.cpp
+index 17ca654..0debedf 100644
+--- a/examples/bitset_iterate.cpp
++++ b/examples/bitset_iterate.cpp
+@@ -1,4 +1,5 @@
+ #include <marnav/utils/bitset.hpp>
++#include <cstdint>
+ #include <iostream>
+ 
+ int main(int, char **)
+diff --git a/include/marnav/ais/binary_data.hpp b/include/marnav/ais/binary_data.hpp
+index 4f4f0f7..d4c88fd 100644
+--- a/include/marnav/ais/binary_data.hpp
++++ b/include/marnav/ais/binary_data.hpp
+@@ -2,6 +2,7 @@
+ #define MARNAV_AIS_BINARY_DATA_HPP
+ 
+ #include <marnav/utils/bitset.hpp>
++#include <cstdint>
+ #include <string>
+ 
+ namespace marnav
+diff --git a/include/marnav/nmea/checksum.hpp b/include/marnav/nmea/checksum.hpp
+index 2016879..f75ef07 100644
+--- a/include/marnav/nmea/checksum.hpp
++++ b/include/marnav/nmea/checksum.hpp
+@@ -2,6 +2,7 @@
+ #define MARNAV_NMEA_CHECKSUM_HPP
+ 
+ #include <algorithm>
++#include <cstdint>
+ #include <stdexcept>
+ #include <string>
+ 
 diff --git a/include/marnav/nmea/constants.hpp b/include/marnav/nmea/constants.hpp
 index 23da994..cd1725d 100644
 --- a/include/marnav/nmea/constants.hpp
@@ -15,6 +60,30 @@ index 23da994..cd1725d 100644
  };
  
  /// Side of the vessel.
+diff --git a/include/marnav/nmea/date.hpp b/include/marnav/nmea/date.hpp
+index abb7f99..71266d9 100644
+--- a/include/marnav/nmea/date.hpp
++++ b/include/marnav/nmea/date.hpp
+@@ -1,6 +1,7 @@
+ #ifndef MARNAV_NMEA_DATE_HPP
+ #define MARNAV_NMEA_DATE_HPP
+ 
++#include <cstdint>
+ #include <string>
+ 
+ namespace marnav
+diff --git a/include/marnav/utils/mmsi_country.hpp b/include/marnav/utils/mmsi_country.hpp
+index 085b12d..0758a1f 100644
+--- a/include/marnav/utils/mmsi_country.hpp
++++ b/include/marnav/utils/mmsi_country.hpp
+@@ -1,6 +1,7 @@
+ #ifndef MARNAV_UTILS_MMSI_COUNTRY_HPP
+ #define MARNAV_UTILS_MMSI_COUNTRY_HPP
+ 
++#include <cstdint>
+ #include <string>
+ 
+ namespace marnav
 diff --git a/src/marnav/nmea/angle.cpp b/src/marnav/nmea/angle.cpp
 index feae413..a1550c7 100644
 --- a/src/marnav/nmea/angle.cpp
@@ -600,4 +669,97 @@ index 37b556e..ceeb296 100644
 +	if (ss.fail())
  		throw std::runtime_error{"invalid string to convert to double: [" + s + "]"};
  }
+ }
+diff --git a/test/nmea/Test_nmea_apa.cpp b/test/nmea/Test_nmea_apa.cpp
+index 99c42b9..59a21c1 100644
+--- a/test/nmea/Test_nmea_apa.cpp
++++ b/test/nmea/Test_nmea_apa.cpp
+@@ -56,7 +56,7 @@ TEST_F(Test_nmea_apa, set_waypoint)
+ TEST_F(Test_nmea_apa, set_bearing_origin_to_destination)
+ {
+ 	nmea::apa apa;
+-	apa.set_bearing_origin_to_destination(11, nmea::reference::MAGNETIC);
++	apa.set_bearing_origin_to_destination(11, nmea::reference::MAGNETIC_REF);
+ 	EXPECT_STREQ("$GPAPA,,,,,,,,11.0,M,*14", nmea::to_string(apa).c_str());
+ }
+ 
+@@ -69,6 +69,6 @@ TEST_F(Test_nmea_apa, get_bearing_origin_to_destination)
+ 	ASSERT_NE(nullptr, apa);
+ 
+ 	EXPECT_NEAR(11.0, *apa->get_bearing_origin_to_destination(), 1.0e-4);
+-	EXPECT_EQ(nmea::reference::MAGNETIC, *apa->get_bearing_origin_to_destination_ref());
++	EXPECT_EQ(nmea::reference::MAGNETIC_REF, *apa->get_bearing_origin_to_destination_ref());
+ }
+ }
+diff --git a/test/nmea/Test_nmea_apb.cpp b/test/nmea/Test_nmea_apb.cpp
+index 8c28049..11f8a05 100644
+--- a/test/nmea/Test_nmea_apb.cpp
++++ b/test/nmea/Test_nmea_apb.cpp
+@@ -57,14 +57,14 @@ TEST_F(Test_nmea_apb, set_waypoint)
+ TEST_F(Test_nmea_apb, set_bearing_origin_to_destination)
+ {
+ 	nmea::apb apb;
+-	apb.set_bearing_origin_to_destination(11, nmea::reference::MAGNETIC);
++	apb.set_bearing_origin_to_destination(11, nmea::reference::MAGNETIC_REF);
+ 	EXPECT_STREQ("$GPAPB,,,,,,,,11.0,M,,,,,,*3B", nmea::to_string(apb).c_str());
+ }
+ 
+ TEST_F(Test_nmea_apb, set_bearing_pos_to_destination)
+ {
+ 	nmea::apb apb;
+-	apb.set_bearing_pos_to_destination(11, nmea::reference::MAGNETIC);
++	apb.set_bearing_pos_to_destination(11, nmea::reference::MAGNETIC_REF);
+ 	EXPECT_STREQ("$GPAPB,,,,,,,,,,,11.0,M,,,*3B", nmea::to_string(apb).c_str());
+ }
+ 
+@@ -77,13 +77,13 @@ TEST_F(Test_nmea_apb, get_bearing_pos_to_destination)
+ 	ASSERT_NE(nullptr, apb);
+ 
+ 	EXPECT_NEAR(11.0, *apb->get_bearing_pos_to_destination(), 1.0e-4);
+-	EXPECT_EQ(nmea::reference::MAGNETIC, *apb->get_bearing_pos_to_destination_ref());
++	EXPECT_EQ(nmea::reference::MAGNETIC_REF, *apb->get_bearing_pos_to_destination_ref());
+ }
+ 
+ TEST_F(Test_nmea_apb, set_heading_to_steer_to_destination)
+ {
+ 	nmea::apb apb;
+-	apb.set_heading_to_steer_to_destination(11, nmea::reference::MAGNETIC);
++	apb.set_heading_to_steer_to_destination(11, nmea::reference::MAGNETIC_REF);
+ 
+ 	EXPECT_STREQ("$GPAPB,,,,,,,,,,,,,11.0,M,*3B", nmea::to_string(apb).c_str());
+ }
+@@ -97,7 +97,7 @@ TEST_F(Test_nmea_apb, get_heading_to_steer)
+ 	ASSERT_NE(nullptr, apb);
+ 
+ 	EXPECT_NEAR(11.0, *apb->get_heading_to_steer_to_destination(), 1.0e-4);
+-	EXPECT_EQ(nmea::reference::MAGNETIC, *apb->get_heading_to_steer_to_destination_ref());
++	EXPECT_EQ(nmea::reference::MAGNETIC_REF, *apb->get_heading_to_steer_to_destination_ref());
+ }
+ 
+ TEST_F(Test_nmea_apb, set_mode_indicator)
+diff --git a/test/nmea/Test_nmea_io.cpp b/test/nmea/Test_nmea_io.cpp
+index 47d6681..d81e493 100644
+--- a/test/nmea/Test_nmea_io.cpp
++++ b/test/nmea/Test_nmea_io.cpp
+@@ -100,7 +100,7 @@ TEST_F(Test_nmea_io, read_double_french_locale)
+ 	}
+ 
+ 	double result = 0.0;
+-	marnav::nmea::read("3.14159", result);
++	marnav::nmea::read("3,14159", result);
+ 
+ 	EXPECT_DOUBLE_EQ(3.14159, result);
+ 
+diff --git a/test/nmea/Test_nmea_mwv.cpp b/test/nmea/Test_nmea_mwv.cpp
+index 5368111..e045977 100644
+--- a/test/nmea/Test_nmea_mwv.cpp
++++ b/test/nmea/Test_nmea_mwv.cpp
+@@ -57,7 +57,7 @@ TEST_F(Test_nmea_mwv, empty_to_string)
+ TEST_F(Test_nmea_mwv, set_angle)
+ {
+ 	nmea::mwv mwv;
+-	mwv.set_angle(12.5, nmea::reference::RELATIVE);
++	mwv.set_angle(12.5, nmea::reference::RELATIVE_REF);
+ 
+ 	EXPECT_STREQ("$IIMWV,12.5,R,,,*2A", nmea::to_string(mwv).c_str());
  }

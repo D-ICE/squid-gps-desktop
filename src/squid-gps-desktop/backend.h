@@ -2,26 +2,28 @@
 #define SQUID_GPS_DESKTOP_BACKEND_H
 
 #include <list>
+#include <memory>
+#include <thread>
 
 #include <QObject>
 #include <QString>
 #include <QSettings>
 #include <qqml.h>
 
-#include "sgps/nmea_listener.h"
 #include "sgps/squid_gps_server.h"
 #include "sgps/controller.h"
+#include "inputs_manager.h"
 
 class BackEnd : public QObject {
   Q_OBJECT
-  Q_PROPERTY(QString squid_connection_status READ squid_connection_status NOTIFY squid_connection_status_changed)
-  Q_PROPERTY(QString nmea_displayed_frames READ nmea_displayed_frames NOTIFY nmea_displayed_frames_changed)
-  Q_PROPERTY(uint16_t nmea_udp_port READ nmea_udp_port WRITE set_nmea_udp_port NOTIFY nmea_udp_port_changed)
-  Q_PROPERTY(QString current_state READ current_state NOTIFY current_state_changed)
-  Q_PROPERTY(bool connect_roadbook READ connect_roadbook WRITE set_connect_roadbook NOTIFY connect_roadbook_changed)
+  QML_SINGLETON
   QML_ELEMENT
 
-  static const uint16_t kDefaultNMEAPort;
+  Q_PROPERTY(QString squid_connection_status READ squid_connection_status NOTIFY squid_connection_status_changed)
+  Q_PROPERTY(QString nmea_displayed_frames READ nmea_displayed_frames NOTIFY nmea_displayed_frames_changed)
+  Q_PROPERTY(QString current_state READ current_state NOTIFY current_state_changed)
+  Q_PROPERTY(bool connect_roadbook READ connect_roadbook WRITE set_connect_roadbook NOTIFY connect_roadbook_changed)
+  Q_PROPERTY(InputsManager* inputs_manager READ inputs_manager CONSTANT)
 
  public:
   enum State {
@@ -35,31 +37,28 @@ class BackEnd : public QObject {
 
   QString squid_connection_status() const;
   QString nmea_displayed_frames() const;
-  uint16_t nmea_udp_port() const;
   QString current_state() const;
   bool connect_roadbook() const;
 
-  Q_INVOKABLE void UpdateSquidState(bool checked, uint16_t port);
-  void set_nmea_udp_port(uint16_t value);
+  Q_INVOKABLE void updateSquidState(bool checked, uint16_t port);
   void set_connect_roadbook(bool value);
+
+  InputsManager* inputs_manager();
 
  signals:
   void squid_connection_status_changed();
   void nmea_displayed_frames_changed();
-  void nmea_udp_port_changed();
   void current_state_changed();
   void connect_roadbook_changed();
 
+ private slots:
+  void onSentence(QString s);
+
  private:
   void Connect(std::error_code& err, uint16_t port);
-  void Disconnect(std::error_code& err);
+  void Disconnect();
 
-  void ConnectNMEA(std::error_code& err);
-  void DisconnectNMEA(std::error_code& err);
   void PushNMEAFrame(std::string&& value);
-
-  uint16_t nmea_udp_port_setting() const;
-  void set_nmea_udp_port_setting(uint16_t value);
 
  private:
   QSettings m_settings;
@@ -69,10 +68,6 @@ class BackEnd : public QObject {
 
   std::list<std::string> m_received_nmea_frames;
   std::string m_displayed_nmea_frames;
-  std::error_code m_listener_err;
-  std::shared_ptr<asio::io_context> m_listener_context;
-  std::shared_ptr<sgps::NMEAListener> m_listener;
-  std::shared_ptr<std::thread> m_listener_context_thread;
 
   State m_squid_connection_state;
   std::shared_ptr<asio::io_context> m_squid_context;
@@ -84,6 +79,8 @@ class BackEnd : public QObject {
 
   bool m_connect_roadbook;
   std::shared_ptr<std::thread> m_roadbook_connection_thread;
+
+  InputsManager m_inputs_manager;
 };
 
 #endif // SQUID_GPS_DESKTOP_BACKEND_H

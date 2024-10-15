@@ -1,27 +1,25 @@
 #include "backend.h"
 
-#include <thread>
-
 #include <QStandardPaths>
 #include <QIODevice>
 #include <QFile>
 
 #include <spdlog/spdlog.h>
-
-const uint16_t BackEnd::kDefaultNMEAPort = 7000;
+#include <marnav/nmea/nmea.hpp>
 
 BackEnd::BackEnd(QObject *parent) :
-    QObject(parent),
-    m_squid_connection_state(DISCONNECTED),
-    m_settings("Squid", "SquidGPSDesktop"),
-    m_controller(m_model),
-    m_connect_roadbook(false) {
-  ConnectNMEA(m_listener_err);
+ QObject(parent),
+ m_squid_connection_state(DISCONNECTED),
+ m_settings("Squid", "SquidGPSDesktop"),
+ m_controller(m_model),
+ m_connect_roadbook(false),
+ m_inputs_manager(m_settings, this) {
+  connect(m_inputs_manager.serial_reader(), &InputReceiver::sentenceReceived, this, &BackEnd::onSentence);
+  connect(m_inputs_manager.udp_listener(), &InputReceiver::sentenceReceived, this, &BackEnd::onSentence);
 }
 
 BackEnd::~BackEnd() {
-  DisconnectNMEA(m_listener_err);
-  Disconnect(m_listener_err);
+  Disconnect();
 }
 
 QString BackEnd::squid_connection_status() const {
@@ -35,62 +33,14 @@ QString BackEnd::squid_connection_status() const {
   }
   return "INVALID";
 }
+
 QString BackEnd::nmea_displayed_frames() const {
   return {m_displayed_nmea_frames.c_str()};
 }
 
-uint16_t BackEnd::nmea_udp_port() const {
-  return nmea_udp_port_setting();
-}
-
-void BackEnd::set_nmea_udp_port(uint16_t value) {
-  if (value == nmea_udp_port()) {
-    return;
-  }
-  set_nmea_udp_port_setting(value);
-  DisconnectNMEA(m_listener_err);
-  if (m_listener_err) {
-    spdlog::warn("Disconnect error: {}", m_listener_err.message());
-  }
-  m_listener_err.clear();
-  ConnectNMEA(m_listener_err);
-}
-
-uint16_t BackEnd::nmea_udp_port_setting() const {
-  return m_settings.value("nmea_udp_port", kDefaultNMEAPort).toUInt();
-}
-
-void BackEnd::set_nmea_udp_port_setting(uint16_t value) {
-  m_settings.setValue("nmea_udp_port", value);
-}
-
-void BackEnd::ConnectNMEA(std::error_code& err) {
-  spdlog::trace("Connecting to NMEA publisher on port {}", nmea_udp_port());
-  m_listener_context = std::make_shared<asio::io_context>();
-  spdlog::trace("Building nmea listener");
-  m_listener = std::make_shared<sgps::NMEAListener>(*m_listener_context);
-  m_listener->Initialize(nmea_udp_port(), err);
-  if (err) {
-    return;
-  }
-  spdlog::trace("Listening on port {}", nmea_udp_port());
-  m_listener->AsyncListen([this](std::unique_ptr<marnav::nmea::sentence> sentence){
-    spdlog::trace("New sentence {}", marnav::nmea::to_string(*sentence));
-    m_controller.OnSentence(*sentence);
-
-    // Update the visualized frames
-    PushNMEAFrame(marnav::nmea::to_string(*sentence));
-  });
-
-  m_listener_context_thread = std::make_shared<std::thread>([this](){
-    m_listener_context->run();
-    spdlog::debug("Closing listener context.");
-  });
-}
-
 void BackEnd::PushNMEAFrame(std::string&& value) {
   m_received_nmea_frames.emplace_front(value);
-  while (m_received_nmea_frames.size() > 10) {
+  while (m_received_nmea_frames.size() > 15) {
     m_received_nmea_frames.pop_back();
   }
   m_displayed_nmea_frames.clear();
@@ -102,31 +52,30 @@ void BackEnd::PushNMEAFrame(std::string&& value) {
   emit current_state_changed();
 }
 
-void BackEnd::DisconnectNMEA(std::error_code& err) {
-  spdlog::trace("Disconnecting NMEA Listener");
-  if (!m_listener_context) {
-    return;
-  }
-  m_listener_context->stop();
-  if (m_listener_context_thread) {
-    m_listener_context_thread->join();
-    m_listener_context_thread.reset();
-  }
-  m_listener.reset();
-  m_listener_context.reset();
-}
-
-
-void BackEnd::UpdateSquidState(bool checked, uint16_t port) {
+void BackEnd::updateSquidState(bool checked, uint16_t port) {
   std::error_code err;
   if (checked) {
     m_squid_connection_state = CONNECTING;
     Connect(err, port);  // TODO handle err
   } else {
     m_squid_connection_state = DISCONNECTED;
-    Disconnect(err);
+    Disconnect();
   }
   emit squid_connection_status_changed();
+}
+
+void BackEnd::onSentence(QString s) {
+  try {
+    auto sentence = marnav::nmea::make_sentence(s.toStdString(), marnav::nmea::checksum_handling::ignore);
+    if (sentence) {
+      m_controller.OnSentence(*sentence);
+      // Update the visualized frames
+      PushNMEAFrame(marnav::nmea::to_string(*sentence));
+    }
+  }
+  catch(const std::exception& e) {
+    spdlog::error("[BackEnd] Exception caught on sentence: {}.", e.what());
+  }
 }
 
 void BackEnd::Connect(std::error_code& err, uint16_t port) {
@@ -168,10 +117,9 @@ void BackEnd::Connect(std::error_code& err, uint16_t port) {
       spdlog::debug("Waking up from connection request loop");
     }
   });
-
 }
 
-void BackEnd::Disconnect(std::error_code& err) {
+void BackEnd::Disconnect() {
   spdlog::trace("Disconnecting");
   if (!m_squid_context) {
     return;
@@ -241,4 +189,8 @@ void BackEnd::set_connect_roadbook(bool value) {
       }
     }
   });
+}
+
+InputsManager* BackEnd::inputs_manager() {
+  return &m_inputs_manager;
 }
