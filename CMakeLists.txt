@@ -13,7 +13,9 @@ set(CMAKE_CXX_STANDARD 17)
 option(squid_gps_desktop_enable_tests "Enable tests" ${squid_gps_desktop_is_toplevel_project})
 
 find_package(Qt6)
-option(squid_gps_enable_gui "Enable GUI components" ${QT_FOUND})
+message("Qt found: ${QT_FOUND}" )
+# Note: variable QT_FOUND looks broken; set the option to false to deactivate building the GUI
+option(squid_gps_enable_gui "Enable GUI components" ON)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/add_asio.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/add_marnav.cmake)
