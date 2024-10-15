@@ -8,6 +8,7 @@
 // Asio needs a call to CoInitialize on windows
 #ifdef CO_INITIALIZE
 #include <windows.h>
+#include <objbase.h>
 void Initialize() {
   CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 }
