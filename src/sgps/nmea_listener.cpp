@@ -43,6 +43,8 @@ namespace sgps {
         } catch (std::invalid_argument e) {
           spdlog::debug("[sgps] Could not decode sentence {} - {}", sentence_str, e.what());
           continue;
+        } catch (const std::exception& e) {
+          spdlog::info("[sgps] Invalid data received {}: {}", sentence_str, e.what());
         }
       }
       AsyncListen(on_sentence);

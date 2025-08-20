@@ -32,7 +32,9 @@ connection enabled.
 
 ## Package
 
-To packge with an installer, we rely on [windeployqt](https://doc.qt.io/qt-6/windows-deployment.html).
+### Windows
+
+To package with an installer, we rely on [windeployqt](https://doc.qt.io/qt-6/windows-deployment.html).
 After a successful build, copy the `squid-gps-desktop.exe` in the install folder. Then run:
 ```
 C:\Qt6\6.4.0\mingw_64\bin\windeployqt.exe --qmldir ..\src\squid-gps-desktop\ .\squid-gps-desktop.exe
@@ -41,3 +43,13 @@ cp C:\Qt6\Tools\mingw1120_64\bin\libstdc++-6.dll .
 cp C:\Qt6\Tools\mingw1120_64\bin\libwinpthread-1.dll .
 ```
 Finally, use the `install.iss` with innosetup to compile the installer.
+
+### Linux
+
+A docker file is provided to build with Linux:
+
+```
+docker build -t squid-gps-builder .
+docker run --name temp-builder squid-gps-builder
+docker cp temp-builder:/code/build/src/squid-gps-cli/build/bin/squid-gps-cli .
+```

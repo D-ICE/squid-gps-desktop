@@ -48,8 +48,10 @@ TEST(sgps, frames) {
   while (std::getline(infile, line)) {
     try {
       auto value = marnav::nmea::make_sentence(line);
-    } catch (std::invalid_argument) {
-      spdlog::info("Error on {}", line);
+    } catch (const std::invalid_argument& e) {
+      spdlog::info("Error on {}: {}", line, e.what());
+    } catch (const std::exception& e) {
+      spdlog::info("Error on {}: {}", line, e.what());
     }
   }
 }
